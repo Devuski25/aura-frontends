@@ -1,0 +1,96 @@
+============================================================
+  AURA-Dx - FRONTEND DEMO - SETUP INSTRUCTIONS
+============================================================
+
+WHAT THIS IS
+------------
+This is a complete, self-contained web app (no backend, no database,
+no Supabase, no login server needed). Everything runs in your browser
+using built-in sample data. You only need ONE thing on your computer:
+Node.js.
+
+------------------------------------------------------------
+STEP 0 - CHECK/INSTALL NODE.JS  (only needed once)
+------------------------------------------------------------
+1. Open Command Prompt (search "cmd" in the Start menu).
+2. Type:  node --version   and press Enter.
+   - If you see something like "v24.16.0" -> you have Node, go to STEP 1.
+   - If you see "'node' is not recognized..." -> Node is NOT installed:
+     a. Go to https://nodejs.org
+     b. Download the LTS version (v20 or newer)
+     c. Install it (keep clicking Next / Finish)
+     d. Close and reopen the Command Prompt
+     e. Type  node --version  again to confirm
+
+------------------------------------------------------------
+EASIEST WAY TO RUN IT  (Windows only)
+------------------------------------------------------------
+1. Put this whole folder anywhere on your computer
+   (e.g. Documents, Desktop, USB stick, Google Drive).
+   Keep the folder contents TOGETHER - do not remove files.
+2. Double-click  setup.bat
+3. Wait for it to install dependencies (only the first time, a few minutes).
+4. Your browser will open  http://localhost:5176  automatically.
+   If it does not, type http://localhost:5176 into your browser manually.
+5. Done! You are looking at the AURA-Dx demo app.
+
+------------------------------------------------------------
+MANUAL WAY TO RUN IT  (Mac / Linux / if you prefer)
+------------------------------------------------------------
+1. Open a terminal inside this folder.
+2. Run:    npm install
+   (one time only - downloads all required packages)
+3. Run:    npm run dev
+4. Open  http://localhost:5176  in your browser.
+5. To stop the app later, press Ctrl+C in the terminal.
+
+------------------------------------------------------------
+WHAT YOU CAN DO IN THE APP
+------------------------------------------------------------
+- Login page has two shortcut buttons:
+    * "Login as Clinician" -> clinician dashboard
+    * "Login as Admin"     -> admin dashboard
+  You can also just type any email + password and press Sign In.
+- Explore: dashboard, screening wizard, patients, screenings,
+  admin user management, register, reset password.
+- Everything is DEMO mode: buttons show "Demo mode" messages
+  instead of really saving. No real data is created.
+
+------------------------------------------------------------
+OTHER USEFUL COMMANDS  (run in a terminal inside this folder)
+------------------------------------------------------------
+npm run build    -> makes a production build (outputs to the dist/ folder)
+npm run lint     -> checks the code for style problems
+npm run preview  -> previews the production build locally
+
+------------------------------------------------------------
+TROUBLESHOOTING
+------------------------------------------------------------
+Q: "vite is not recognized" or "npm is not recognized"
+A: You skipped npm install (STEP 1) or Node.js is not installed (STEP 0).
+
+Q: "Something is already running on port 5176"
+A: Another dev server is already open. Close the other terminal window
+   that is running the app, or restart your computer.
+
+Q: The app opens but the camera / recording widget does not start
+A: The camera widget needs permission. Click the camera/mic icon in your
+   browser's address bar and allow camera + microphone, then reload.
+
+Q: A page looks broken or images are missing
+A: Make sure you did NOT delete the "public" folder. It contains files
+   the camera widget needs (mediapipe + model files).
+
+Q: The page shows a blank white screen
+A: Close the terminal, run  npm run dev  again, then reload the browser.
+
+Q: I moved the folder to another computer / USB - it does not work
+A: Do not copy the "node_modules" or "dist" folders. Just copy the rest
+   and run  npm install  again on the new computer.
+
+------------------------------------------------------------
+REQUIREMENTS SUMMARY
+------------------------------------------------------------
+- Node.js v20.19 or newer (v22.12+ / v24 recommended)
+- Internet connection for the FIRST npm install only
+- Everything else is included in this folder.
