@@ -141,7 +141,7 @@ export function Admin() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Users</h1>
+          <h1 className="font-display text-2xl font-bold text-aura-ink">Users</h1>
           <p className="text-aura-muted">Manage users and view system metrics</p>
         </div>
       </div>
@@ -198,7 +198,8 @@ export function Admin() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Users ({filteredUsers.length} of {users.length})</CardTitle>
+              <CardTitle className="font-display text-lg font-semibold text-aura-ink">Users</CardTitle>
+              <p className="mt-1 text-sm text-aura-muted">Showing {filteredUsers.length} of {users.length} accounts</p>
             </CardHeader>
             <CardContent>
               {filteredUsers.length === 0 ? (
@@ -208,26 +209,26 @@ export function Admin() {
               ) : (
                 <div>
                   <Table>
-                    <TableHeader className="sticky top-0 z-10 bg-gray-50">
-                      <TableRow className="align-middle">
-                        <TableHead className="px-4 text-center">Name</TableHead>
-                        <TableHead className="px-4 text-center">Email</TableHead>
-                        <TableHead className="px-4 text-center">Role</TableHead>
-                        <TableHead className="px-4 text-center">Status</TableHead>
-                        <TableHead className="w-36 px-4 text-center">Approve / Reject</TableHead>
-                        <TableHead className="w-32 px-4 text-center">Actions</TableHead>
+                    <TableHeader className="sticky top-0 z-10 bg-aura-sage">
+                      <TableRow className="align-middle border-b border-aura-line hover:bg-transparent">
+                        <TableHead className="px-4 text-center font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-aura-muted">Name</TableHead>
+                        <TableHead className="px-4 text-center font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-aura-muted">Email</TableHead>
+                        <TableHead className="px-4 text-center font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-aura-muted">Role</TableHead>
+                        <TableHead className="px-4 text-center font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-aura-muted">Status</TableHead>
+                        <TableHead className="w-36 px-4 text-center font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-aura-muted">Approve / Reject</TableHead>
+                        <TableHead className="w-32 px-4 text-center font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-aura-muted">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {filteredUsers.map(u => (
-                        <TableRow key={u.id} className="align-middle">
+                        <TableRow key={u.id} className="align-middle border-b border-aura-line hover:bg-aura-sage/60">
                           <TableCell className="px-4 text-center align-middle">
                             <div className="font-medium">{u.full_name}</div>
                           </TableCell>
                           <TableCell className="px-4 text-center text-sm text-aura-muted align-middle">{u.email}</TableCell>
                           <TableCell className="px-4 text-center align-middle">
                             <div className="flex justify-center">
-                              <Badge variant="secondary" className="bg-aura-surface-alt text-aura-text border-aura-border">
+                              <Badge variant="secondary" className="border-transparent bg-aura-sage text-aura-forest">
                                 {u.role.replace("_", " ")}
                               </Badge>
                             </div>
@@ -242,34 +243,52 @@ export function Admin() {
                           <TableCell className="w-36 px-4 text-center align-middle">
                             <div className="flex items-center justify-center gap-1">
                               {u.status === "pending" && u.role !== "super_admin" && (
-                                <div className="rounded-full p-1 transition-colors hover:bg-emerald-100">
-                                  <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" onClick={() => handleApprove(u.id)} title="Approve" aria-label={`Approve ${u.full_name}`}>
-                                    <CheckCircle className="h-4 w-4 text-emerald-600" />
-                                  </Button>
-                                </div>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 rounded-full transition-colors hover:bg-aura-mint-soft"
+                                  onClick={() => handleApprove(u.id)}
+                                  title="Approve"
+                                  aria-label={`Approve ${u.full_name}`}
+                                >
+                                  <CheckCircle className="h-4 w-4 text-aura-mint" />
+                                </Button>
                               )}
                               {u.status === "pending" && u.role !== "super_admin" && (
-                                <div className="rounded-full p-1 transition-colors hover:bg-red-100">
-                                  <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" onClick={() => handleReject(u.id)} title="Reject" aria-label={`Reject ${u.full_name}`}>
-                                    <XCircle className="h-4 w-4 text-red-600" />
-                                  </Button>
-                                </div>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 rounded-full transition-colors hover:bg-aura-coral-soft"
+                                  onClick={() => handleReject(u.id)}
+                                  title="Reject"
+                                  aria-label={`Reject ${u.full_name}`}
+                                >
+                                  <XCircle className="h-4 w-4 text-aura-coral" />
+                                </Button>
                               )}
                             </div>
                           </TableCell>
                           <TableCell className="w-32 px-4 text-center align-middle">
-                            <div className="flex items-center justify-center gap-2">
-                              <div className="rounded-full p-1 transition-colors hover:bg-gray-200">
-                                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" onClick={() => openEditDialog(u)} aria-label={`Edit ${u.full_name}`}>
-                                  <Edit className="h-4 w-4" />
-                                </Button>
-                              </div>
+                            <div className="flex items-center justify-center gap-1">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 rounded-full text-aura-muted transition-colors hover:bg-aura-sage hover:text-aura-forest"
+                                onClick={() => openEditDialog(u)}
+                                aria-label={`Edit ${u.full_name}`}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
                               {(u.role !== "super_admin" && u.id !== "user-superadmin") && (
-                                <div className="rounded-full p-1 transition-colors hover:bg-gray-200">
-                                  <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" onClick={() => confirmDelete(u)} aria-label={`Delete ${u.full_name}`}>
-                                    <Trash2 className="h-4 w-4 text-destructive" />
-                                  </Button>
-                                </div>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 rounded-full text-destructive transition-colors hover:bg-aura-coral-soft"
+                                  onClick={() => confirmDelete(u)}
+                                  aria-label={`Delete ${u.full_name}`}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
                               )}
                             </div>
                           </TableCell>
@@ -328,7 +347,7 @@ export function Admin() {
                 <div className="space-y-3">
                   {["clinician", "admin", "super_admin"].map(role => (
                     <div key={role} className="flex items-center gap-4">
-                      <Badge variant="secondary" className="bg-aura-surface-alt text-aura-text border-aura-border w-24">
+                      <Badge variant="secondary" className="w-24 border-transparent bg-aura-sage text-aura-forest">
                         {role.replace("_", " ")}
                       </Badge>
                       <div className="flex-1 h-2 bg-aura-surface-alt rounded-full overflow-hidden">
@@ -501,7 +520,7 @@ export function Admin() {
 
               <DialogFooter>
                 <Button type="submit" disabled={form.formState.isSubmitting}>
-                  {form.formState.isSubmitting ? "Saving..." : editingUser ? "Update" : "Create"}
+                  {form.formState.isSubmitting ? "Saving…" : editingUser ? "Update" : "Create"}
                 </Button>
               </DialogFooter>
             </form>
@@ -527,7 +546,7 @@ export function Admin() {
           <div className="flex items-center gap-3 rounded-lg bg-aura-surface-alt p-3 text-sm">
             <Mail className="h-4 w-4 text-aura-muted shrink-0" />
             <span className="text-aura-muted">{deletingUser?.email}</span>
-            <Badge variant="secondary" className="bg-aura-surface-alt text-aura-text border-aura-border ml-auto">
+            <Badge variant="secondary" className="ml-auto border-transparent bg-aura-sage text-aura-forest">
               {deletingUser?.role}
             </Badge>
           </div>
@@ -537,7 +556,7 @@ export function Admin() {
             </Button>
             <Button variant="destructive" onClick={executeDelete} disabled={deleting}>
               <Loader2 className={cn("mr-2 h-4 w-4", deleting ? "animate-spin" : "hidden")} role="status" aria-live="polite" />
-              {deleting ? "Deleting..." : "Delete User"}
+              {deleting ? "Deleting…" : "Delete User"}
             </Button>
           </DialogFooter>
         </DialogContent>

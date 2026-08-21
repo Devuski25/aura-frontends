@@ -1,11 +1,11 @@
 "use client"
 
 import { useState } from "react"
-import { useParams, useNavigate } from "react-router-dom"
+import { Link, useParams, useNavigate } from "react-router-dom"
 import { ArrowLeft, Trash2, Calendar, MapPin, Stethoscope, Shield } from "lucide-react"
 import { motion } from "framer-motion"
 import { cardHover } from "@/lib/motion"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { MOCK_PATIENTS, MOCK_SCREENINGS } from "@/mocks/data"
@@ -144,7 +144,7 @@ export function PatientDetail() {
               <DialogFooter>
                 <Button variant="outline" onClick={() => setDeleteConfirmOpen(false)}>Cancel</Button>
                 <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
-                  {deleting ? "Deleting..." : "Delete"}
+                  {deleting ? "Deleting…" : "Delete"}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -295,9 +295,9 @@ export function PatientDetail() {
                         )}
                       </TableCell>
                       <TableCell>
-                        <Button variant="ghost" size="sm" onClick={() => navigate(`/dashboard/screenings/${s.id}`)}>
+                        <Link to={`/dashboard/screenings/${s.id}`} className={buttonVariants({ variant: "ghost", size: "sm" })}>
                           View Details
-                        </Button>
+                        </Link>
                       </TableCell>
                     </TableRow>
                   ))}

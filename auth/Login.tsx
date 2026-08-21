@@ -1,11 +1,11 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useNavigate, useSearchParams } from "react-router-dom"
+import { Link, useNavigate, useSearchParams } from "react-router-dom"
 import { motion } from "framer-motion"
 import { pageVariants } from "@/lib/motion"
 import { Loader2, AlertCircle, Eye, EyeOff, ShieldCheck, ShieldAlert, Clock, Key, ArrowLeft, Stethoscope, UserCog } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card"
@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dialog"
 import { useAuth } from "@/hooks/useAuth"
 import { GoogleIcon } from "@auth/components/GoogleIcon"
+import { WaveformBackground } from "@auth/components/WaveformBackground"
 
 export function Login() {
   const { signIn, confirmLogin, signInWithOAuth } = useAuth()
@@ -83,32 +84,33 @@ export function Login() {
       variants={pageVariants}
       initial="initial"
       animate="animate"
-      className="min-h-screen flex items-center justify-center bg-aura-accent px-4 py-12">
-      <div className="w-full max-w-md">
-        <button
-          onClick={() => navigate("/")}
+      className="relative min-h-screen overflow-hidden flex items-center justify-center bg-aura-bg px-4 py-12">
+      <WaveformBackground />
+      <div className="relative z-10 w-full max-w-md">
+        <Link
+          to="/"
           aria-label="Back to Website"
           title="Back to Website"
-          className="mb-4 flex h-10 w-10 items-center justify-center rounded-full border border-white/30 bg-white text-aura-accent shadow-aura-sm transition-all duration-200 hover:border-white hover:bg-white/95 hover:text-aura-accent-dark hover:-translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-aura-accent"
+          className="mb-4 flex h-10 w-10 items-center justify-center rounded-full border border-aura-border bg-white text-aura-accent shadow-aura-sm transition-all duration-200 hover:border-aura-accent-light hover:bg-white hover:text-aura-accent-dark hover:-translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-aura-accent focus-visible:ring-offset-2 focus-visible:ring-offset-aura-bg"
         >
           <ArrowLeft className="h-5 w-5" />
-        </button>
-        <Card className="w-full">
+        </Link>
+        <Card className="w-full rounded-xl border-white/40 bg-white/70 shadow-lg backdrop-blur-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
-          <CardDescription>Sign in to your AURA-Dx account</CardDescription>
+          <CardTitle className="text-2xl font-bold text-gray-900">Welcome back</CardTitle>
+          <CardDescription className="text-gray-700">Sign in to your AURA-Dx account</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <div className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 p-3 rounded-lg">
+              <div role="alert" className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 p-3 rounded-lg">
                 <AlertCircle className="h-4 w-4 flex-shrink-0" />
                 {error}
               </div>
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" className="text-gray-700">Email</Label>
                 <Input
                   id="email"
                   type="email"
@@ -118,12 +120,12 @@ export function Login() {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   disabled={loading}
-                  className="h-10"
+                  className="h-10 bg-white/90"
                 />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password" className="text-gray-700">Password</Label>
               <div className="relative">
                 <Input
                   id="password"
@@ -145,7 +147,7 @@ export function Login() {
                   }}
                   required
                   disabled={loading}
-                  className="h-10 pr-10"
+                  className="h-10 bg-white/90 pr-10"
                 />
                 <button
                   type="button"
@@ -171,7 +173,7 @@ export function Login() {
                       }}
                     />
                   </div>
-                  <p className="text-xs text-aura-muted">
+                  <p className="text-xs text-gray-700">
                     {passwordStrength === 0 ? "Very weak" :
                      passwordStrength === 1 ? "Weak" :
                      passwordStrength === 2 ? "Fair" :
@@ -184,39 +186,45 @@ export function Login() {
                 <button
                   type="button"
                   onClick={() => setShowForgotPassword(true)}
-                  className="text-sm text-primary hover:underline"
+                  className="text-sm font-medium text-emerald-700 hover:text-emerald-800 hover:underline"
                 >
                   Forgot password?
                 </button>
               </div>
             </div>
 
-            <Button type="submit" className="w-full h-10" disabled={loading}>
+            <Button
+              type="submit"
+              className="w-full h-10 bg-emerald-700 text-white shadow-sm transition-colors duration-200 hover:bg-emerald-800 focus-visible:ring-emerald-600"
+              disabled={loading}
+            >
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" role="status" aria-live="polite" />}
-              {loading ? "Signing in..." : "Sign In"}
+              {loading ? "Signing in…" : "Sign In"}
             </Button>
 
             <div className="grid grid-cols-2 gap-3">
-              <Button
-                type="button"
-                variant="outline"
-                className="h-10 gap-2"
-                disabled={loading}
-                onClick={() => navigate("/dashboard")}
+              <Link
+                to="/dashboard"
+                aria-disabled={loading}
+                onClick={(e) => {
+                  if (loading && !e.metaKey && !e.ctrlKey) e.preventDefault()
+                }}
+                className={buttonVariants({ variant: "outline", className: "h-10 gap-2" })}
               >
                 <Stethoscope className="h-4 w-4 flex-shrink-0" />
                 Login as Clinician
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                className="h-10 gap-2"
-                disabled={loading}
-                onClick={() => navigate("/dashboard/admin")}
+              </Link>
+              <Link
+                to="/dashboard/admin"
+                aria-disabled={loading}
+                onClick={(e) => {
+                  if (loading && !e.metaKey && !e.ctrlKey) e.preventDefault()
+                }}
+                className={buttonVariants({ variant: "outline", className: "h-10 gap-2" })}
               >
                 <UserCog className="h-4 w-4 flex-shrink-0" />
                 Login as Admin
-              </Button>
+              </Link>
             </div>
 
             <div className="relative my-6">
@@ -224,7 +232,7 @@ export function Login() {
                 <div className="w-full border-t border-aura-border-soft" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="bg-aura-accent px-2 text-white/80">Or continue with</span>
+                <span className="bg-white/70 px-2 text-gray-700">Or continue with</span>
               </div>
             </div>
 
@@ -252,14 +260,14 @@ export function Login() {
           </form>
         </CardContent>
         <CardFooter className="flex justify-center">
-          <p className="text-sm text-aura-muted">
+          <p className="text-sm text-gray-700">
             Don't have an account?{" "}
-            <button
-              onClick={() => navigate("/register")}
-              className="text-primary hover:underline font-medium"
+            <Link
+              to="/register"
+              className="font-medium text-emerald-700 hover:text-emerald-800 hover:underline"
             >
               Register an Account
-            </button>
+            </Link>
           </p>
         </CardFooter>
       </Card>
@@ -399,7 +407,7 @@ export function Login() {
               </Button>
               <Button type="submit" disabled={forgotLoading}>
                 {forgotLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" role="status" aria-live="polite" />}
-                {forgotLoading ? "Sending..." : "Send Reset Link"}
+                {forgotLoading ? "Sending…" : "Send Reset Link"}
               </Button>
             </DialogFooter>
           </form>

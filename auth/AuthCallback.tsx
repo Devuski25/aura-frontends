@@ -1,11 +1,11 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { useNavigate, useSearchParams } from "react-router-dom"
+import { Link, useNavigate, useSearchParams } from "react-router-dom"
 import { motion } from "framer-motion"
 import { pageVariants } from "@/lib/motion"
 import { Loader2, CheckCircle, AlertCircle, ArrowRight, Clock } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card"
 
 export function AuthCallback() {
@@ -36,10 +36,6 @@ export function AuthCallback() {
     return () => clearTimeout(timer)
   }, [searchParams])
 
-  const goToDashboard = async () => {
-    navigate("/dashboard")
-  }
-
   const goToLogin = () => {
     navigate("/login")
   }
@@ -54,7 +50,7 @@ export function AuthCallback() {
       >
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="h-8 w-8 animate-spin text-aura-accent" role="status" aria-live="polite" />
-          <p className="text-aura-text">Completing sign in...</p>
+          <p className="text-aura-text">Completing sign in…</p>
         </div>
       </motion.div>
     )
@@ -93,7 +89,7 @@ export function AuthCallback() {
             ) : (
               <>
                 <Loader2 className="h-12 w-12 text-aura-accent mx-auto mb-4 animate-spin" role="status" aria-live="polite" />
-                <CardTitle className="text-2xl font-bold">Processing...</CardTitle>
+                <CardTitle className="text-2xl font-bold">Processing…</CardTitle>
                 <CardDescription>Please wait while we complete your sign in</CardDescription>
               </>
             )}
@@ -101,10 +97,10 @@ export function AuthCallback() {
           <CardContent />
           <CardFooter className="flex flex-col gap-2">
             {success && (
-              <Button onClick={goToDashboard} className="w-full">
+              <Link to="/dashboard" className={buttonVariants({ className: "w-full" })}>
                 <ArrowRight className="mr-2 h-4 w-4" />
                 Continue to Dashboard
-              </Button>
+              </Link>
             )}
             {accountStatus === "pending" && (
               <Button variant="outline" onClick={goToLogin} className="w-full">

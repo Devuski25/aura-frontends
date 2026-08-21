@@ -186,7 +186,7 @@ export function ResetPassword() {
 
                 <Button type="submit" className="w-full h-10" disabled={loading || passwordStrength < 3}>
                   {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" role="status" aria-live="polite" />}
-                  {loading ? "Updating..." : "Update Password"}
+                  {loading ? "Updating…" : "Update Password"}
                 </Button>
               </form>
             )}

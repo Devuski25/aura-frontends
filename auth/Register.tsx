@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useRef } from "react"
-import { useNavigate } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { motion } from "framer-motion"
 import { pageVariants } from "@/lib/motion"
 import { Loader2, AlertCircle, Eye, EyeOff, ShieldCheck, CheckCircle, XCircle, Mail } from "lucide-react"
@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dialog"
 import { useAuth } from "@/hooks/useAuth"
 import { GoogleIcon } from "@auth/components/GoogleIcon"
+import { WaveformBackground } from "@auth/components/WaveformBackground"
 
 export function Register() {
   const { signUp, signInWithOAuth } = useAuth()
@@ -184,23 +185,24 @@ export function Register() {
       variants={pageVariants}
       initial="initial"
       animate="animate"
-      className="min-h-screen flex items-center justify-center bg-aura-accent px-4 py-12">
-      <Card className="w-full max-w-md">
+      className="relative min-h-screen overflow-hidden flex items-center justify-center bg-aura-bg px-4 py-12">
+      <WaveformBackground />
+      <Card className="relative z-10 w-full max-w-md rounded-xl border-white/40 bg-white/70 shadow-lg backdrop-blur-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">Create Account</CardTitle>
-          <CardDescription>Register as a clinician to access AURA-Dx</CardDescription>
+          <CardTitle className="text-2xl font-bold text-gray-900">Create Account</CardTitle>
+          <CardDescription className="text-gray-700">Register as a clinician to access AURA-Dx</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <div className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 p-3 rounded-lg">
+              <div role="alert" className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 p-3 rounded-lg">
                 <AlertCircle className="h-4 w-4 flex-shrink-0" />
                 {error}
               </div>
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="full_name">Full Name</Label>
+              <Label htmlFor="full_name" className="text-gray-700">Full Name</Label>
               <Input
                 id="full_name"
                 name="full_name"
@@ -211,13 +213,13 @@ export function Register() {
                 onChange={handleChange}
                 required
                 disabled={loading}
-                className="h-10"
+                className="h-10 bg-white/90"
               />
             </div>
 
             {/* Email + OTP Verification */}
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" className="text-gray-700">Email</Label>
               <div className="flex gap-2">
                 <Input
                   id="email"
@@ -229,7 +231,7 @@ export function Register() {
                   onChange={handleChange}
                   required
                   disabled={loading || otpVerified}
-                  className="h-10 flex-1"
+                  className="h-10 flex-1 bg-white/90"
                 />
                 <Button
                   type="button"
@@ -253,8 +255,8 @@ export function Register() {
 
               {/* OTP Input — always visible, disabled until code is sent */}
               <div className="space-y-2 pt-1">
-                <Label htmlFor="otp">Verification Code</Label>
-                <p className="text-xs text-aura-muted">
+                <Label htmlFor="otp" className="text-gray-700">Verification Code</Label>
+                <p className="text-xs text-gray-700">
                   {otpVerified
                     ? "Your email has been verified"
                     : "Click the mail icon to send a 6-digit code to your email"}
@@ -287,7 +289,7 @@ export function Register() {
                       }
                     }}
                     disabled={loading || otpVerified || !otpSent}
-                    className="h-10 tracking-widest text-center text-lg pr-10"
+                    className="h-10 bg-white/90 tracking-widest text-center text-lg pr-10"
                   />
                   <div className="absolute right-3 top-1/2 -translate-y-1/2">
                     {otpVerifying && <Loader2 className="h-4 w-4 animate-spin text-aura-muted" role="status" aria-live="polite" />}
@@ -300,7 +302,7 @@ export function Register() {
 
               {/* OTP Status Messages */}
               {otpMessage && (
-                <p className={`text-xs ${otpVerified ? "text-aura-accent-dark" : "text-aura-accent"}`}>
+                <p className="text-xs text-emerald-700">
                   {otpMessage}
                 </p>
               )}
@@ -308,7 +310,7 @@ export function Register() {
                 <p className="text-xs text-destructive">{otpError}</p>
               )}
               {otpVerified && (
-                <p className="text-xs text-aura-accent-dark flex items-center gap-1">
+                <p className="text-xs text-emerald-700 flex items-center gap-1">
                   <CheckCircle className="h-3 w-3" />
                   Email verified
                 </p>
@@ -316,7 +318,7 @@ export function Register() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phone">Phone (optional)</Label>
+              <Label htmlFor="phone" className="text-gray-700">Phone (optional)</Label>
               <Input
                 id="phone"
                 name="phone"
@@ -326,12 +328,12 @@ export function Register() {
                 value={formData.phone}
                 onChange={handleChange}
                 disabled={loading}
-                className="h-10"
+                className="h-10 bg-white/90"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="specialization">Specialization (optional)</Label>
+              <Label htmlFor="specialization" className="text-gray-700">Specialization (optional)</Label>
               <Input
                 id="specialization"
                 name="specialization"
@@ -340,7 +342,7 @@ export function Register() {
                 value={formData.specialization}
                 onChange={handleChange}
                 disabled={loading}
-                className="h-10"
+                className="h-10 bg-white/90"
               />
             </div>
 
@@ -354,13 +356,13 @@ export function Register() {
                 value={formData.license_number}
                 onChange={handleChange}
                 disabled={loading}
-                className="h-10"
+                className="h-10 bg-white/90"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <p className="text-xs text-aura-muted">At least 8 characters with uppercase, lowercase, number, and a special character</p>
+              <Label htmlFor="password" className="text-gray-700">Password</Label>
+              <p className="text-xs text-gray-700">At least 8 characters with uppercase, lowercase, number, and a special character</p>
               <div className="relative">
                 <Input
                   id="password"
@@ -372,7 +374,7 @@ export function Register() {
                   onChange={handleChange}
                   required
                   disabled={loading}
-                  className="h-10 pr-10"
+                  className="h-10 bg-white/90 pr-10"
                 />
                 <button
                   type="button"
@@ -398,7 +400,7 @@ export function Register() {
                       }}
                     />
                   </div>
-                  <p className="text-xs text-aura-muted">
+                  <p className="text-xs text-gray-700">
                     {passwordStrength === 0 ? "Very weak" :
                      passwordStrength === 1 ? "Weak" :
                      passwordStrength === 2 ? "Fair" :
@@ -410,7 +412,7 @@ export function Register() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <Label htmlFor="confirmPassword" className="text-gray-700">Confirm Password</Label>
               <div className="relative">
                 <Input
                   id="confirmPassword"
@@ -422,7 +424,7 @@ export function Register() {
                   onChange={handleChange}
                   required
                   disabled={loading}
-                  className="h-10 pr-10"
+                  className="h-10 bg-white/90 pr-10"
                 />
                 <button
                   type="button"
@@ -440,15 +442,15 @@ export function Register() {
 
             <Button
               type="submit"
-              className="w-full h-10"
+              className="w-full h-10 bg-emerald-700 text-white shadow-sm transition-colors duration-200 hover:bg-emerald-800 focus-visible:ring-emerald-600"
               disabled={loading || !canRegister}
             >
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" role="status" aria-live="polite" />}
-              {loading ? "Creating Account..." : "Create Account"}
+              {loading ? "Creating Account…" : "Create Account"}
             </Button>
 
             {!otpVerified && (
-              <p className="text-xs text-center text-aura-muted">
+              <p className="text-xs text-center text-gray-700">
                 Verify your email above before registering
               </p>
             )}
@@ -458,7 +460,7 @@ export function Register() {
                 <div className="w-full border-t border-aura-border-soft" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="bg-white px-2 text-aura-muted">Or continue with</span>
+                <span className="bg-white/70 px-2 text-gray-700">Or continue with</span>
               </div>
             </div>
 
@@ -483,14 +485,14 @@ export function Register() {
           </form>
         </CardContent>
         <CardFooter className="flex justify-center">
-          <p className="text-sm text-aura-muted">
+          <p className="text-sm text-gray-700">
             Already have an account?{" "}
-            <button
-              onClick={() => navigate("/login")}
-              className="text-primary hover:underline font-medium"
+            <Link
+              to="/login"
+              className="font-medium text-emerald-700 hover:text-emerald-800 hover:underline"
             >
               Sign in
-            </button>
+            </Link>
           </p>
         </CardFooter>
       </Card>

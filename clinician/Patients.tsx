@@ -28,6 +28,7 @@ import {
   FormDescription,
 } from "@/components/ui/form"
 import { getResultBadge } from "@clinician/lib/badge-helpers"
+import { cn } from "@/lib/utils"
 import { z } from "zod"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -93,12 +94,12 @@ function getInitials(name: string) {
 }
 
 const AVATAR_COLORS = [
-  "bg-emerald-100 text-emerald-800",
-  "bg-sky-100 text-sky-800",
-  "bg-violet-100 text-violet-800",
-  "bg-amber-100 text-amber-800",
-  "bg-rose-100 text-rose-800",
-  "bg-teal-100 text-teal-800",
+  "bg-[#E3F5EC] text-[#0E7A55]",
+  "bg-[#FCEAE6] text-[#C4351F]",
+  "bg-[#FEF3C7] text-[#B45309]",
+  "bg-[#EAF1EC] text-[#155E54]",
+  "bg-[#D7EEE3] text-[#0E5A42]",
+  "bg-[#F5EBDD] text-[#8A5A2B]",
 ]
 
 function getAvatarColor(name: string) {
@@ -111,18 +112,14 @@ function getAvatarColor(name: string) {
 
 function getConditionClass(condition: string) {
   if (condition === "TB" || condition === "Pneumonia") {
-    return "border-transparent bg-red-100 text-red-800"
+    return "border-transparent bg-aura-coral-soft text-[#C4351F]"
   }
 
   if (condition === "COPD") {
-    return "border-transparent bg-amber-100 text-amber-800"
+    return "border-transparent bg-aura-warning-soft text-aura-warning-strong"
   }
 
-  if (condition === "Asthma" || condition === "Bronchitis") {
-    return "border-aura-border bg-white text-aura-text"
-  }
-
-  return "border-aura-border bg-aura-surface-alt text-aura-text"
+  return "border-transparent bg-aura-sage text-aura-forest"
 }
 
 export function Patients() {
@@ -226,7 +223,7 @@ export function Patients() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Patients</h1>
+          <h1 className="font-display text-2xl font-bold text-aura-ink">Patients</h1>
           <p className="text-aura-muted">Manage patient records and screenings</p>
         </div>
       </div>
@@ -275,7 +272,8 @@ export function Patients() {
       {/* Patients Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Patients Records ({filteredPatients.length} of {patients.length})</CardTitle>
+          <CardTitle className="font-display text-lg font-semibold text-aura-ink">Patients Records</CardTitle>
+          <p className="mt-1 text-sm text-aura-muted">Showing {filteredPatients.length} of {patients.length} records</p>
         </CardHeader>
         <CardContent>
           {filteredPatients.length === 0 ? (
@@ -285,20 +283,20 @@ export function Patients() {
           ) : (
             <div>
               <Table>
-                <TableHeader className="sticky top-0 z-10 bg-gray-50">
-                  <TableRow className="align-middle">
-                    <TableHead className="px-4">Name</TableHead>
-                    <TableHead className="px-4">Age & Gender</TableHead>
-                    <TableHead className="px-4">Smoking</TableHead>
-                    <TableHead className="px-4">Conditions</TableHead>
-                    <TableHead className="px-4">Latest Result</TableHead>
-                    <TableHead className="px-4">Created</TableHead>
-                    <TableHead className="w-32 px-4 text-right">Actions</TableHead>
+                <TableHeader className="sticky top-0 z-10 bg-aura-sage">
+                  <TableRow className="align-middle border-b border-aura-line hover:bg-transparent">
+                    <TableHead className="px-4 font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-aura-muted">Name</TableHead>
+                    <TableHead className="px-4 font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-aura-muted">Age &amp; Gender</TableHead>
+                    <TableHead className="px-4 font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-aura-muted">Smoking</TableHead>
+                    <TableHead className="px-4 font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-aura-muted">Conditions</TableHead>
+                    <TableHead className="px-4 font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-aura-muted">Latest Result</TableHead>
+                    <TableHead className="px-4 font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-aura-muted">Created</TableHead>
+                    <TableHead className="w-32 px-4 text-right font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-aura-muted">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {visiblePatients.map(patient => (
-                    <TableRow key={patient.id} className="align-middle hover:bg-gray-50">
+                    <TableRow key={patient.id} className="align-middle border-b border-aura-line hover:bg-aura-sage/60">
                       <TableCell className="px-4 align-middle">
                         <div className="flex items-center gap-3">
                           <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold ${getAvatarColor(patient.full_name)}`}>
@@ -326,14 +324,18 @@ export function Patients() {
                         )}
                       </TableCell>
                       <TableCell className="px-4 align-middle">
-                        <div className="flex flex-wrap gap-1">
-                          {(patient.past_respiratory_diseases || []).slice(0, 2).map((d: string, i: number) => (
-                            <Badge key={i} variant="outline" className={getConditionClass(d)}>{d}</Badge>
-                          ))}
-                          {(patient.past_respiratory_diseases || []).length > 2 && (
-                            <Badge variant="outline">+{(patient.past_respiratory_diseases || []).length - 2} more</Badge>
-                          )}
-                        </div>
+                        {(patient.past_respiratory_diseases || []).length === 0 ? (
+                          <span className="text-sm text-aura-muted">—</span>
+                        ) : (
+                          <div className="flex flex-wrap gap-1">
+                            {(patient.past_respiratory_diseases || []).slice(0, 2).map((d: string, i: number) => (
+                              <Badge key={i} variant="outline" className={getConditionClass(d)}>{d}</Badge>
+                            ))}
+                            {(patient.past_respiratory_diseases || []).length > 2 && (
+                              <Badge variant="outline" className="border-transparent bg-aura-sage text-aura-forest">+{(patient.past_respiratory_diseases || []).length - 2} more</Badge>
+                            )}
+                          </div>
+                        )}
                       </TableCell>
                       <TableCell className="px-4 align-middle">
                         {getResultBadge(
@@ -345,38 +347,65 @@ export function Patients() {
                         {new Date(patient.created_at).toLocaleDateString()}
                       </TableCell>
                       <TableCell className="w-32 px-4 text-right align-middle">
-                        <div className="flex items-center justify-end gap-2">
-                          <div className="rounded-full p-1 transition-colors hover:bg-gray-200">
-                            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" onClick={() => openEditDialog(patient)} aria-label={`Edit ${patient.full_name}`}>
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                          </div>
-                          <div className="rounded-full p-1 transition-colors hover:bg-gray-200">
-                            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" onClick={() => confirmDelete(patient)} aria-label={`Delete ${patient.full_name}`}>
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
-                          </div>
+                        <div className="flex items-center justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 rounded-full text-aura-muted transition-colors hover:bg-aura-sage hover:text-aura-forest"
+                            onClick={() => openEditDialog(patient)}
+                            aria-label={`Edit ${patient.full_name}`}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 rounded-full text-destructive transition-colors hover:bg-aura-coral-soft"
+                            onClick={() => confirmDelete(patient)}
+                            aria-label={`Delete ${patient.full_name}`}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </div>
                       </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
-              <div className="flex items-center justify-between border-t border-aura-border-soft px-4 py-4">
+              <div className="flex items-center justify-between border-t border-aura-line px-4 py-4">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setCurrentPage(currentPage - 1)}
                   disabled={currentPage === 1}
+                  className="border-aura-border text-aura-forest hover:bg-aura-sage hover:text-aura-forest"
                 >
                   Previous
                 </Button>
-                <span className="text-sm text-aura-muted">Page {currentPage} of {totalPages}</span>
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      aria-label={`Go to page ${page}`}
+                      aria-current={page === currentPage ? "page" : undefined}
+                      className={cn(
+                        "flex h-9 min-w-9 items-center justify-center rounded-md px-2 text-sm font-medium transition-colors",
+                        page === currentPage
+                          ? "bg-primary text-primary-foreground"
+                          : "text-aura-forest hover:bg-aura-sage"
+                      )}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                </div>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setCurrentPage(currentPage + 1)}
                   disabled={currentPage === totalPages}
+                  className="border-aura-border text-aura-forest hover:bg-aura-sage hover:text-aura-forest"
                 >
                   Next
                 </Button>
@@ -547,7 +576,7 @@ export function Patients() {
 
             <DialogFooter>
               <Button type="submit" disabled={form.formState.isSubmitting}>
-                {form.formState.isSubmitting ? "Saving..." : editingPatient ? "Update" : "Create"}
+                {form.formState.isSubmitting ? "Saving…" : editingPatient ? "Update" : "Create"}
               </Button>
             </DialogFooter>
           </Form>

@@ -274,13 +274,12 @@ export function NewPatientModal({ open, onOpenChange, onPatientCreated, initialD
                           )}
                         >
                           <Checkbox
-                            type="checkbox"
                             checked={field.value.includes(disease)}
-                            onChange={(e) => {
+                            onCheckedChange={(checked) => {
                               if (disease === "None of the above") {
-                                field.onChange(e.target.checked ? ["None of the above"] : [])
+                                field.onChange(checked === true ? ["None of the above"] : [])
                               } else {
-                                let newValue = e.target.checked
+                                let newValue = checked === true
                                   ? [...field.value, disease]
                                   : field.value.filter((d: string) => d !== disease)
                                 field.onChange(newValue.filter((d: string) => d !== "None of the above"))
@@ -318,13 +317,12 @@ export function NewPatientModal({ open, onOpenChange, onPatientCreated, initialD
                           )}
                         >
                           <Checkbox
-                            type="checkbox"
                             checked={field.value.includes(symptom)}
-                            onChange={(e) => {
+                            onCheckedChange={(checked) => {
                               if (symptom === "None of the above") {
-                                field.onChange(e.target.checked ? ["None of the above"] : [])
+                                field.onChange(checked === true ? ["None of the above"] : [])
                               } else {
-                                let newValue = e.target.checked
+                                let newValue = checked === true
                                   ? [...field.value, symptom]
                                   : field.value.filter((s: string) => s !== symptom)
                                 field.onChange(newValue.filter((s: string) => s !== "None of the above"))
@@ -348,7 +346,7 @@ export function NewPatientModal({ open, onOpenChange, onPatientCreated, initialD
                 Cancel
               </Button>
               <Button type="submit" disabled={form.formState.isSubmitting}>
-                {form.formState.isSubmitting ? "Creating..." : "Create Patient & Continue"}
+                {form.formState.isSubmitting ? "Creating…" : "Create Patient & Continue"}
               </Button>
             </DialogFooter>
         </Form>

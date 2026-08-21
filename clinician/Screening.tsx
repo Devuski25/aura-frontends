@@ -557,7 +557,7 @@ export function Screening() {
                 {submitting ? (
                   <>
                     <Loader2 className="h-5 w-5 animate-spin" role="status" aria-live="polite" />
-                    Analyzing cough audio...
+                    Analyzing cough audio…
                   </>
                 ) : (
                   <>
