@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>AURA-Dx — Screening Result</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#12211F;
+    --paper:#F6F8F6;
+    --card:#FFFFFF;
+    --sage:#EAF1EC;
+    --forest:#0E3B36;
+    --forest-light:#155E54;
+    --mint:#1E9E73;
+    --mint-soft:#E3F5EC;
+    --coral:#E2543A;
+    --coral-soft:#FCEAE6;
+    --line:#E1E7E2;
+    --muted:#6B7B76;
+    --display:'Space Grotesk',sans-serif;
+    --body:'Inter',sans-serif;
+    --mono:'IBM Plex Mono',monospace;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--body);
+    -webkit-font-smoothing:antialiased;
+  }
+  .app{ display:flex; min-height:100vh; }
+
+  /* ---------- Sidebar ---------- */
+  .sidebar{
+    width:230px;
+    background:linear-gradient(185deg,var(--forest) 0%, #0A2C28 100%);
+    color:#EAF3EF;
+    padding:28px 20px;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    flex-shrink:0;
+  }
+  .brand{ margin-bottom:44px; }
+  .brand-mark{ display:flex; align-items:center; gap:8px; }
+  .brand-mark svg{ flex-shrink:0; }
+  .brand-title{ font-family:var(--display); font-weight:700; font-size:17px; letter-spacing:0.02em; }
+  .brand-title span{ color:#5FD9A8; }
+  .brand-sub{ font-family:var(--mono); font-size:9px; letter-spacing:0.14em; color:#7FA89C; margin-top:4px; text-transform:uppercase; }
+
+  nav{ display:flex; flex-direction:column; gap:4px; }
+  .nav-item{
+    display:flex; align-items:center; gap:11px;
+    padding:10px 12px; border-radius:8px;
+    font-size:13.5px; font-weight:500; color:#B7CFC7;
+    cursor:pointer; transition:background .15s ease, color .15s ease;
+  }
+  .nav-item svg{ opacity:.85; }
+  .nav-item.active{ background:rgba(95,217,168,0.12); color:#EAF3EF; }
+  .nav-item.active svg{ opacity:1; color:#5FD9A8; }
+  .nav-item:hover:not(.active){ background:rgba(255,255,255,0.05); }
+
+  .user-card{
+    display:flex; align-items:center; gap:10px;
+    padding:12px; border-radius:10px;
+    background:rgba(255,255,255,0.04);
+    border:1px solid rgba(255,255,255,0.06);
+  }
+  .avatar{
+    width:32px; height:32px; border-radius:50%;
+    background:linear-gradient(135deg,#E2543A,#C43F28);
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--display); font-weight:700; font-size:12px; color:#fff;
+    flex-shrink:0;
+  }
+  .user-name{ font-size:12.5px; font-weight:600; color:#EAF3EF; }
+  .user-role{ font-size:10.5px; color:#7FA89C; }
+
+  /* ---------- Main ---------- */
+  main{ flex:1; padding:36px 48px 60px; max-width:980px; }
+
+  .topbar{
+    display:flex; justify-content:space-between; align-items:flex-start;
+    margin-bottom:28px;
+  }
+  .patient-line{ display:flex; align-items:center; gap:8px; font-size:13.5px; color:var(--muted); }
+  .patient-line strong{ color:var(--ink); font-weight:600; }
+  .patient-line .dot{ width:3px; height:3px; border-radius:50%; background:var(--muted); }
+  .actions{ display:flex; gap:10px; }
+  .btn{
+    display:flex; align-items:center; gap:7px;
+    font-family:var(--body); font-size:13px; font-weight:600;
+    padding:9px 15px; border-radius:8px; border:1px solid var(--line);
+    background:var(--card); color:var(--ink); cursor:pointer;
+    transition:border-color .15s ease, box-shadow .15s ease;
+  }
+  .btn:hover{ border-color:var(--forest-light); }
+  .btn.primary{ background:var(--forest); color:#fff; border-color:var(--forest); }
+  .btn.primary:hover{ background:var(--forest-light); }
+
+  /* ---------- Info cards ---------- */
+  .card{
+    background:var(--card); border:1px solid var(--line); border-radius:14px;
+    padding:22px 26px; margin-bottom:20px;
+  }
+  .card-title{
+    font-family:var(--display); font-weight:600; font-size:15px;
+    margin-bottom:18px; display:flex; align-items:center; gap:8px;
+  }
+  .grid4{ display:grid; grid-template-columns:repeat(4,1fr); gap:20px; }
+  .field-label{ font-family:var(--mono); font-size:10px; letter-spacing:.08em; color:var(--muted); text-transform:uppercase; margin-bottom:6px; }
+  .field-value{ font-size:14.5px; font-weight:600; color:var(--ink); line-height:1.4; }
+
+  /* ---------- Cascade stepper ---------- */
+  .cascade-strip{
+    display:flex; align-items:center; gap:0; margin-top:6px;
+  }
+  .cascade-step{
+    display:flex; align-items:center; gap:8px;
+    font-family:var(--mono); font-size:11.5px; font-weight:500; color:var(--forest);
+    background:var(--mint-soft); padding:6px 12px; border-radius:20px;
+  }
+  .cascade-arrow{
+    width:34px; height:1px; background:repeating-linear-gradient(90deg, var(--line) 0 5px, transparent 5px 9px);
+    margin:0 4px; position:relative;
+  }
+  .cascade-arrow::after{
+    content:''; position:absolute; right:-1px; top:-3px;
+    border-left:5px solid var(--line); border-top:3.5px solid transparent; border-bottom:3.5px solid transparent;
+  }
+
+  /* ---------- Tier result cards ---------- */
+  .tier-card{
+    background:var(--card); border-radius:16px; padding:0; margin-bottom:22px;
+    overflow:hidden; border:1px solid var(--line);
+  }
+  .tier-card.healthy{ border-left:4px solid var(--mint); }
+  .tier-card.flagged{ border-left:4px solid var(--coral); }
+
+  .tier-head{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:20px 26px; border-bottom:1px solid var(--line);
+  }
+  .tier-head-left{ display:flex; align-items:center; gap:10px; }
+  .tier-eyebrow{ font-family:var(--mono); font-size:10px; color:var(--muted); letter-spacing:.08em; text-transform:uppercase; }
+  .tier-name{ font-family:var(--display); font-weight:600; font-size:17px; }
+  .status-pill{
+    display:flex; align-items:center; gap:6px;
+    font-family:var(--mono); font-size:11.5px; font-weight:600;
+    padding:6px 13px; border-radius:20px;
+  }
+  .status-pill.ok{ background:var(--mint-soft); color:#0E7A55; }
+  .status-pill.warn{ background:var(--coral-soft); color:#C4351F; }
+  .status-pill svg{ width:12px; height:12px; }
+
+  .tier-body{ padding:26px; display:grid; grid-template-columns:200px 1fr; gap:32px; }
+
+  /* Confidence ring */
+  .conf-block{ display:flex; flex-direction:column; align-items:flex-start; gap:14px; }
+  .ring-wrap{ position:relative; width:132px; height:132px; }
+  .ring-wrap svg{ transform:rotate(-90deg); }
+  .ring-value{
+    position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  }
+  .ring-num{ font-family:var(--display); font-weight:700; font-size:26px; }
+  .ring-num.ok{ color:var(--mint); }
+  .ring-num.warn{ color:var(--coral); }
+  .ring-lbl{ font-family:var(--mono); font-size:9px; color:var(--muted); letter-spacing:.08em; text-transform:uppercase; margin-top:2px; }
+  .meta-row{ display:flex; flex-direction:column; gap:3px; }
+  .meta-row .field-label{ margin-bottom:2px; }
+
+  /* Probability bars */
+  .prob-title{ font-family:var(--mono); font-size:10px; color:var(--muted); letter-spacing:.08em; text-transform:uppercase; margin-bottom:14px; }
+  .prob-row{ margin-bottom:16px; }
+  .prob-row:last-child{ margin-bottom:0; }
+  .prob-row-top{ display:flex; justify-content:space-between; align-items:center; margin-bottom:7px; }
+  .prob-name{ display:flex; align-items:center; gap:7px; font-size:13px; font-weight:600; }
+  .swatch{ width:8px; height:8px; border-radius:2px; }
+  .swatch.red{ background:var(--coral); }
+  .swatch.green{ background:var(--mint); }
+  .prob-pct{ font-family:var(--mono); font-size:13px; font-weight:600; }
+  .bar-track{ height:8px; background:var(--sage); border-radius:6px; overflow:hidden; }
+  .bar-fill{ height:100%; border-radius:6px; }
+  .bar-fill.red{ background:linear-gradient(90deg,#F0725C,var(--coral)); }
+  .bar-fill.green{ background:linear-gradient(90deg,#4CC490,var(--mint)); }
+
+  .waveform{ display:flex; align-items:flex-end; gap:2px; height:16px; opacity:.5; }
+  .waveform span{ width:2px; background:var(--forest-light); border-radius:1px; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div>
+      <div class="brand">
+        <div class="brand-mark">
+          <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
+            <circle cx="13" cy="13" r="12" stroke="#5FD9A8" stroke-width="1.4"/>
+            <path d="M6 13c1.5 0 1.5-5 3-5s1.5 10 3 10 1.5-9 3-9 1.5 6 3 6 1.5-2 3-2" stroke="#5FD9A8" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          </svg>
+          <div>
+            <div class="brand-title">AURA <span>· Dx</span></div>
+          </div>
+        </div>
+        <div class="brand-sub">Acoustic Unit for Respiratory Analysis</div>
+      </div>
+
+      <nav>
+        <div class="nav-item active">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1.5" y="1.5" width="5.5" height="5.5" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="9" y="1.5" width="5.5" height="5.5" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="1.5" y="9" width="5.5" height="5.5" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="9" y="9" width="5.5" height="5.5" rx="1" stroke="currentColor" stroke-width="1.3"/></svg>
+          Dashboard
+        </div>
+        <div class="nav-item">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="5" r="2.8" stroke="currentColor" stroke-width="1.3"/><path d="M2.5 14c0-2.8 2.5-5 5.5-5s5.5 2.2 5.5 5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+          Patients
+        </div>
+        <div class="nav-item">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="6" cy="5" r="2.3" stroke="currentColor" stroke-width="1.3"/><path d="M1.8 13.5c0-2.4 2-4.2 4.2-4.2s4.2 1.8 4.2 4.2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M11 3.2c1.1.3 1.9 1.3 1.9 2.5S12.1 7.9 11 8.2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M12.2 9.6c1.3.5 2.2 1.8 2.2 3.2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+          Users
+        </div>
+      </nav>
+    </div>
+
+    <div class="user-card">
+      <div class="avatar">RC</div>
+      <div>
+        <div class="user-name">Rein Cama</div>
+        <div class="user-role">Super Admin</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main>
+    <div class="topbar">
+      <div class="patient-line">
+        <strong>Elena Fernandez</strong>
+        <span class="dot"></span>
+        URS Morong Health Center
+      </div>
+      <div class="actions">
+        <button class="btn">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1.5v8M4 6.5 7 9.5 10 6.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 11h10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+          Download PDF
+        </button>
+        <button class="btn primary">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3.5 4.5V2h7v2.5M3.5 9.5H2.3A1.3 1.3 0 0 1 1 8.2V6.3A1.3 1.3 0 0 1 2.3 5h9.4A1.3 1.3 0 0 1 13 6.3v1.9a1.3 1.3 0 0 1-1.3 1.3h-1.2M3.5 7.8h7v4.2h-7z" stroke="white" stroke-width="1.2" stroke-linejoin="round"/></svg>
+          Print
+        </button>
+      </div>
+    </div>
+
+    <!-- Patient Information -->
+    <div class="card">
+      <div class="card-title">Patient Information</div>
+      <div class="grid4">
+        <div><div class="field-label">Name</div><div class="field-value">Elena Fernandez</div></div>
+        <div><div class="field-label">Age / Gender</div><div class="field-value">25 years · female</div></div>
+        <div><div class="field-label">Age Bracket</div><div class="field-value">Adult</div></div>
+        <div><div class="field-label">Clinic / Clinician</div><div class="field-value">URS Morong Health Center<br>Dr. John Smith</div></div>
+      </div>
+    </div>
+
+    <!-- Screening Details -->
+    <div class="card">
+      <div class="card-title">Screening Details</div>
+      <div class="grid4" style="margin-bottom:22px;">
+        <div><div class="field-label">Screening Date</div><div class="field-value">Aug 9, 2026, 1:29 PM</div></div>
+        <div><div class="field-label">Model Version</div><div class="field-value" style="font-family:var(--mono); font-size:13px;">resnet18_v2.4.1</div></div>
+        <div><div class="field-label">Audio Duration</div><div class="field-value">5 seconds</div></div>
+        <div>
+          <div class="waveform">
+            <span style="height:4px"></span><span style="height:9px"></span><span style="height:14px"></span><span style="height:6px"></span><span style="height:16px"></span><span style="height:10px"></span><span style="height:5px"></span><span style="height:12px"></span><span style="height:8px"></span><span style="height:15px"></span><span style="height:6px"></span><span style="height:11px"></span>
+          </div>
+        </div>
+      </div>
+      <div class="field-label">Cascade Path</div>
+      <div class="cascade-strip" style="margin-top:8px;">
+        <div class="cascade-step">TIER 1 · TB GATEKEEPER</div>
+        <div class="cascade-arrow"></div>
+        <div class="cascade-step">TIER 2 · RESPIRATORY CLASSIFIER</div>
+      </div>
+    </div>
+
+    <!-- Tier 1 -->
+    <div class="tier-card healthy">
+      <div class="tier-head">
+        <div class="tier-head-left">
+          <div>
+            <div class="tier-eyebrow">Tier 1</div>
+            <div class="tier-name">TB Gatekeeper</div>
+          </div>
+        </div>
+        <div class="status-pill ok">
+          <svg viewBox="0 0 16 16" fill="none"><path d="M3.5 8.2 6.5 11l6-7" stroke="#0E7A55" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Non-TB
+        </div>
+      </div>
+      <div class="tier-body">
+        <div class="conf-block">
+          <div class="ring-wrap">
+            <svg width="132" height="132" viewBox="0 0 132 132">
+              <circle cx="66" cy="66" r="56" stroke="#EAF1EC" stroke-width="12" fill="none"/>
+              <circle cx="66" cy="66" r="56" stroke="#1E9E73" stroke-width="12" fill="none"
+                stroke-linecap="round"
+                stroke-dasharray="351.86"
+                stroke-dashoffset="10.6"/>
+            </svg>
+            <div class="ring-value">
+              <div class="ring-num ok">97%</div>
+              <div class="ring-lbl">Confidence</div>
+            </div>
+          </div>
+          <div class="meta-row">
+            <div class="field-label">Model Version</div>
+            <div class="field-value" style="font-family:var(--mono); font-size:12.5px; font-weight:500;">resnet18_v2.4.1</div>
+          </div>
+          <div class="meta-row">
+            <div class="field-label">Cascade Decision</div>
+            <div class="field-value" style="font-size:13px;">Continued to Tier 2</div>
+          </div>
+        </div>
+        <div>
+          <div class="prob-title">Probability Distribution</div>
+          <div class="prob-row">
+            <div class="prob-row-top">
+              <div class="prob-name"><span class="swatch red"></span>TB</div>
+              <div class="prob-pct">3.0%</div>
+            </div>
+            <div class="bar-track"><div class="bar-fill red" style="width:3%"></div></div>
+          </div>
+          <div class="prob-row">
+            <div class="prob-row-top">
+              <div class="prob-name"><span class="swatch green"></span>Non-TB</div>
+              <div class="prob-pct">97.0%</div>
+            </div>
+            <div class="bar-track"><div class="bar-fill green" style="width:97%"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tier 2 -->
+    <div class="tier-card healthy">
+      <div class="tier-head">
+        <div class="tier-head-left">
+          <div>
+            <div class="tier-eyebrow">Tier 2</div>
+            <div class="tier-name">Respiratory Classifier</div>
+          </div>
+        </div>
+        <div class="status-pill ok">
+          <svg viewBox="0 0 16 16" fill="none"><path d="M3.5 8.2 6.5 11l6-7" stroke="#0E7A55" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Healthy
+        </div>
+      </div>
+      <div class="tier-body">
+        <div class="conf-block">
+          <div class="ring-wrap">
+            <svg width="132" height="132" viewBox="0 0 132 132">
+              <circle cx="66" cy="66" r="56" stroke="#EAF1EC" stroke-width="12" fill="none"/>
+              <circle cx="66" cy="66" r="56" stroke="#1E9E73" stroke-width="12" fill="none"
+                stroke-linecap="round"
+                stroke-dasharray="351.86"
+                stroke-dashoffset="3.5"/>
+            </svg>
+            <div class="ring-value">
+              <div class="ring-num ok">99%</div>
+              <div class="ring-lbl">Confidence</div>
+            </div>
+          </div>
+          <div class="meta-row">
+            <div class="field-label">Model Version</div>
+            <div class="field-value" style="font-family:var(--mono); font-size:12.5px; font-weight:500;">resnet18_v2.4.1</div>
+          </div>
+        </div>
+        <div>
+          <div class="prob-title">Probability Distribution</div>
+          <div class="prob-row">
+            <div class="prob-row-top">
+              <div class="prob-name"><span class="swatch green"></span>Healthy</div>
+              <div class="prob-pct">99.0%</div>
+            </div>
+            <div class="bar-track"><div class="bar-fill green" style="width:99%"></div></div>
+          </div>
+          <div class="prob-row">
+            <div class="prob-row-top">
+              <div class="prob-name"><span class="swatch red"></span>Other Findings</div>
+              <div class="prob-pct">1.0%</div>
+            </div>
+            <div class="bar-track"><div class="bar-fill red" style="width:1%"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+</body>
+</html>

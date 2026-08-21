@@ -144,10 +144,6 @@ export function Admin() {
           <h1 className="text-2xl font-bold">Users</h1>
           <p className="text-aura-muted">Manage users and view system metrics</p>
         </div>
-        <Button onClick={openCreateDialog}>
-          <UserPlusIcon className="mr-2 h-4 w-4" />
-          Add User
-        </Button>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -160,21 +156,21 @@ export function Admin() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="users">
+        <TabsContent value="users" className="space-y-6">
           <Card>
             <CardContent className="pt-6">
-              <div className="flex flex-col sm:flex-row gap-4 mb-6">
+              <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center">
                 <div className="relative flex-1 max-w-xs">
                   <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-aura-muted" />
                   <Input
                     placeholder="Search users..."
                     value={search}
                     onChange={e => setSearch(e.target.value)}
-                    className="pl-9"
+                    className="h-10 pl-9"
                   />
                 </div>
                 <Select value={roleFilter} onValueChange={setRoleFilter}>
-                  <SelectTrigger className="w-[180px]"><SelectValue placeholder="All Roles" /></SelectTrigger>
+                  <SelectTrigger className="h-10 w-[180px]"><SelectValue placeholder="All Roles" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All</SelectItem>
                     <SelectItem value="clinician">Clinician</SelectItem>
@@ -183,7 +179,7 @@ export function Admin() {
                   </SelectContent>
                 </Select>
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-[180px]"><SelectValue placeholder="All Status" /></SelectTrigger>
+                  <SelectTrigger className="h-10 w-[180px]"><SelectValue placeholder="All Status" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All</SelectItem>
                     <SelectItem value="pending">Pending</SelectItem>
@@ -192,6 +188,10 @@ export function Admin() {
                     <SelectItem value="deleted">Deleted</SelectItem>
                   </SelectContent>
                 </Select>
+                <Button onClick={openCreateDialog} className="h-10 sm:ml-3">
+                  <UserPlusIcon className="mr-2 h-4 w-4" />
+                  Add User
+                </Button>
               </div>
             </CardContent>
           </Card>
@@ -206,62 +206,70 @@ export function Admin() {
                   No user/s found.
                 </div>
               ) : (
-                <div className="overflow-x-auto overflow-y-auto max-h-[500px]">
+                <div>
                   <Table>
-                    <TableHeader className="sticky top-0 z-10 bg-aura-elevated">
-                      <TableRow>
-                        <TableHead className="text-center">Name</TableHead>
-                        <TableHead className="text-center">Email</TableHead>
-                        <TableHead className="text-center">Role</TableHead>
-                        <TableHead className="text-center">Status</TableHead>
-                        <TableHead className="text-center">Approve / Reject</TableHead>
-                        <TableHead className="text-center">Actions</TableHead>
+                    <TableHeader className="sticky top-0 z-10 bg-gray-50">
+                      <TableRow className="align-middle">
+                        <TableHead className="px-4 text-center">Name</TableHead>
+                        <TableHead className="px-4 text-center">Email</TableHead>
+                        <TableHead className="px-4 text-center">Role</TableHead>
+                        <TableHead className="px-4 text-center">Status</TableHead>
+                        <TableHead className="w-36 px-4 text-center">Approve / Reject</TableHead>
+                        <TableHead className="w-32 px-4 text-center">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {filteredUsers.map(u => (
-                        <TableRow key={u.id}>
-                          <TableCell className="text-center">
+                        <TableRow key={u.id} className="align-middle">
+                          <TableCell className="px-4 text-center align-middle">
                             <div className="font-medium">{u.full_name}</div>
                           </TableCell>
-                          <TableCell className="text-center text-sm text-aura-muted">{u.email}</TableCell>
-                          <TableCell className="text-center">
+                          <TableCell className="px-4 text-center text-sm text-aura-muted align-middle">{u.email}</TableCell>
+                          <TableCell className="px-4 text-center align-middle">
                             <div className="flex justify-center">
-                              <Badge variant={u.role === "super_admin" ? "destructive" : u.role === "admin" ? "outline" : "info"} className={u.role === "admin" ? "bg-aura-accent-dark hover:bg-aura-accent text-white border-transparent" : ""}>
+                              <Badge variant="secondary" className="bg-aura-surface-alt text-aura-text border-aura-border">
                                 {u.role.replace("_", " ")}
                               </Badge>
                             </div>
                           </TableCell>
-                          <TableCell className="text-center">
+                          <TableCell className="px-4 text-center align-middle">
                             <div className="flex justify-center">
                               <Badge variant={u.status === "approved" ? "success" : u.status === "pending" ? "warning" : "destructive"}>
                                 {u.status}
                               </Badge>
                             </div>
                           </TableCell>
-                          <TableCell className="text-center">
+                          <TableCell className="w-36 px-4 text-center align-middle">
                             <div className="flex items-center justify-center gap-1">
                               {u.status === "pending" && u.role !== "super_admin" && (
-                                <Button variant="ghost" size="icon" onClick={() => handleApprove(u.id)} title="Approve" aria-label={`Approve ${u.full_name}`}>
-                                  <CheckCircle className="h-4 w-4 text-aura-accent" />
-                                </Button>
+                                <div className="rounded-full p-1 transition-colors hover:bg-emerald-100">
+                                  <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" onClick={() => handleApprove(u.id)} title="Approve" aria-label={`Approve ${u.full_name}`}>
+                                    <CheckCircle className="h-4 w-4 text-emerald-600" />
+                                  </Button>
+                                </div>
                               )}
                               {u.status === "pending" && u.role !== "super_admin" && (
-                                <Button variant="ghost" size="icon" onClick={() => handleReject(u.id)} title="Reject" aria-label={`Reject ${u.full_name}`}>
-                                  <XCircle className="h-4 w-4 text-destructive" />
-                                </Button>
+                                <div className="rounded-full p-1 transition-colors hover:bg-red-100">
+                                  <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" onClick={() => handleReject(u.id)} title="Reject" aria-label={`Reject ${u.full_name}`}>
+                                    <XCircle className="h-4 w-4 text-red-600" />
+                                  </Button>
+                                </div>
                               )}
                             </div>
                           </TableCell>
-                          <TableCell className="text-center">
+                          <TableCell className="w-32 px-4 text-center align-middle">
                             <div className="flex items-center justify-center gap-2">
-                              <Button variant="ghost" size="icon" onClick={() => openEditDialog(u)} aria-label={`Edit ${u.full_name}`}>
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              {(u.role !== "super_admin" && u.id !== "user-superadmin") && (
-                                <Button variant="ghost" size="icon" onClick={() => confirmDelete(u)} aria-label={`Delete ${u.full_name}`}>
-                                  <Trash2 className="h-4 w-4 text-destructive" />
+                              <div className="rounded-full p-1 transition-colors hover:bg-gray-200">
+                                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" onClick={() => openEditDialog(u)} aria-label={`Edit ${u.full_name}`}>
+                                  <Edit className="h-4 w-4" />
                                 </Button>
+                              </div>
+                              {(u.role !== "super_admin" && u.id !== "user-superadmin") && (
+                                <div className="rounded-full p-1 transition-colors hover:bg-gray-200">
+                                  <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" onClick={() => confirmDelete(u)} aria-label={`Delete ${u.full_name}`}>
+                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                  </Button>
+                                </div>
                               )}
                             </div>
                           </TableCell>
@@ -320,7 +328,7 @@ export function Admin() {
                 <div className="space-y-3">
                   {["clinician", "admin", "super_admin"].map(role => (
                     <div key={role} className="flex items-center gap-4">
-                      <Badge variant={role === "super_admin" ? "destructive" : role === "admin" ? "outline" : "info"} className={role === "admin" ? "bg-aura-accent-dark hover:bg-aura-accent text-white border-transparent w-24" : "w-24"}>
+                      <Badge variant="secondary" className="bg-aura-surface-alt text-aura-text border-aura-border w-24">
                         {role.replace("_", " ")}
                       </Badge>
                       <div className="flex-1 h-2 bg-aura-surface-alt rounded-full overflow-hidden">
@@ -519,7 +527,7 @@ export function Admin() {
           <div className="flex items-center gap-3 rounded-lg bg-aura-surface-alt p-3 text-sm">
             <Mail className="h-4 w-4 text-aura-muted shrink-0" />
             <span className="text-aura-muted">{deletingUser?.email}</span>
-            <Badge variant={deletingUser?.role === "super_admin" ? "destructive" : deletingUser?.role === "admin" ? "outline" : "info"} className={deletingUser?.role === "admin" ? "bg-aura-accent-dark hover:bg-aura-accent text-white border-transparent ml-auto" : "ml-auto"}>
+            <Badge variant="secondary" className="bg-aura-surface-alt text-aura-text border-aura-border ml-auto">
               {deletingUser?.role}
             </Badge>
           </div>

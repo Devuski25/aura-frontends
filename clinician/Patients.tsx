@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Loader2, Search, Edit, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -28,7 +28,6 @@ import {
   FormDescription,
 } from "@/components/ui/form"
 import { getResultBadge } from "@clinician/lib/badge-helpers"
-import { Checkbox } from "@/components/ui/checkbox"
 import { z } from "zod"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -86,6 +85,46 @@ function buildStaticPatients(): any[] {
 
 const STATIC_PATIENTS = buildStaticPatients()
 
+function getInitials(name: string) {
+  const parts = name.trim().split(" ")
+  const first = parts[0]?.charAt(0) || ""
+  const last = parts.length > 1 ? parts[parts.length - 1].charAt(0) : ""
+  return `${first}${last}`.toUpperCase()
+}
+
+const AVATAR_COLORS = [
+  "bg-emerald-100 text-emerald-800",
+  "bg-sky-100 text-sky-800",
+  "bg-violet-100 text-violet-800",
+  "bg-amber-100 text-amber-800",
+  "bg-rose-100 text-rose-800",
+  "bg-teal-100 text-teal-800",
+]
+
+function getAvatarColor(name: string) {
+  let hash = 0
+  for (let i = 0; i < name.length; i++) {
+    hash = (hash * 31 + name.charCodeAt(i)) >>> 0
+  }
+  return AVATAR_COLORS[hash % AVATAR_COLORS.length]
+}
+
+function getConditionClass(condition: string) {
+  if (condition === "TB" || condition === "Pneumonia") {
+    return "border-transparent bg-red-100 text-red-800"
+  }
+
+  if (condition === "COPD") {
+    return "border-transparent bg-amber-100 text-amber-800"
+  }
+
+  if (condition === "Asthma" || condition === "Bronchitis") {
+    return "border-aura-border bg-white text-aura-text"
+  }
+
+  return "border-aura-border bg-aura-surface-alt text-aura-text"
+}
+
 export function Patients() {
   const patients = STATIC_PATIENTS
   const [search, setSearch] = useState("")
@@ -95,7 +134,9 @@ export function Patients() {
   const [editingPatient, setEditingPatient] = useState<any | null>(null)
   const [deletingPatient, setDeletingPatient] = useState<any | null>(null)
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
   const deleting = false
+  const rowsPerPage = 5
 
   const form = useForm<PatientFormData>({
     resolver: zodResolver(patientSchema),
@@ -140,6 +181,14 @@ export function Patients() {
       return getPatientDisease(p) === diseaseFilter
     })
 
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [search, genderFilter, diseaseFilter])
+
+  const totalPages = Math.max(1, Math.ceil(filteredPatients.length / rowsPerPage))
+  const firstRowIndex = (currentPage - 1) * rowsPerPage
+  const visiblePatients = filteredPatients.slice(firstRowIndex, firstRowIndex + rowsPerPage)
+
   const openEditDialog = (patient: any) => {
     setEditingPatient(patient)
     form.reset({
@@ -180,26 +229,23 @@ export function Patients() {
           <h1 className="text-2xl font-bold">Patients</h1>
           <p className="text-aura-muted">Manage patient records and screenings</p>
         </div>
-        <Button onClick={openCreateDialog}>
-          Add Patient
-        </Button>
       </div>
 
       {/* Filters */}
       <Card>
         <CardContent className="pt-6">
-          <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <div className="relative flex-1 max-w-xs">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-aura-muted" />
               <Input
                 placeholder="Search patients..."
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                className="pl-9"
+                className="h-10 pl-9"
               />
             </div>
             <Select value={genderFilter} onValueChange={setGenderFilter}>
-              <SelectTrigger className="w-[160px]">
+              <SelectTrigger className="h-10 w-[160px]">
                 <SelectValue placeholder="Gender" />
               </SelectTrigger>
               <SelectContent>
@@ -209,7 +255,7 @@ export function Patients() {
               </SelectContent>
             </Select>
             <Select value={diseaseFilter} onValueChange={setDiseaseFilter}>
-              <SelectTrigger className="w-[170px]">
+              <SelectTrigger className="h-10 w-[170px]">
                 <SelectValue placeholder="Disease" />
               </SelectTrigger>
               <SelectContent>
@@ -219,6 +265,9 @@ export function Patients() {
                 ))}
               </SelectContent>
             </Select>
+            <Button onClick={openCreateDialog} className="h-10 sm:ml-3">
+              Add Patient
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -234,33 +283,40 @@ export function Patients() {
               No patients found.
             </div>
           ) : (
-            <div className="overflow-x-auto overflow-y-auto max-h-[500px]">
+            <div>
               <Table>
-                <TableHeader className="sticky top-0 z-10 bg-aura-elevated">
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Age & Gender</TableHead>
-                    <TableHead>Smoking</TableHead>
-                    <TableHead>Conditions</TableHead>
-                    <TableHead>Latest Result</TableHead>
-                    <TableHead>Created</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                <TableHeader className="sticky top-0 z-10 bg-gray-50">
+                  <TableRow className="align-middle">
+                    <TableHead className="px-4">Name</TableHead>
+                    <TableHead className="px-4">Age & Gender</TableHead>
+                    <TableHead className="px-4">Smoking</TableHead>
+                    <TableHead className="px-4">Conditions</TableHead>
+                    <TableHead className="px-4">Latest Result</TableHead>
+                    <TableHead className="px-4">Created</TableHead>
+                    <TableHead className="w-32 px-4 text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredPatients.map(patient => (
-                    <TableRow key={patient.id}>
-                      <TableCell>
-                        <div className="font-medium">{patient.full_name}</div>
-                        <div className="text-xs text-aura-muted">{patient.clinician_name}</div>
+                  {visiblePatients.map(patient => (
+                    <TableRow key={patient.id} className="align-middle hover:bg-gray-50">
+                      <TableCell className="px-4 align-middle">
+                        <div className="flex items-center gap-3">
+                          <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold ${getAvatarColor(patient.full_name)}`}>
+                            {getInitials(patient.full_name)}
+                          </div>
+                          <div className="min-w-0">
+                            <div className="truncate font-medium">{patient.full_name}</div>
+                            <div className="truncate text-xs text-aura-muted">{patient.clinician_name}</div>
+                          </div>
+                        </div>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="px-4 align-middle">
                         <div>
                           <div className="font-medium">{patient.age_bracket}</div>
                           <div className="text-xs text-aura-muted capitalize">{patient.gender}</div>
                         </div>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="px-4 align-middle">
                         {patient.smoking_history ? (
                           <Badge variant="secondary">
                             {patient.pack_years ? `${patient.pack_years} pack-years` : "Yes"}
@@ -269,39 +325,62 @@ export function Patients() {
                           <Badge variant="outline">Non-smoker</Badge>
                         )}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="px-4 align-middle">
                         <div className="flex flex-wrap gap-1">
                           {(patient.past_respiratory_diseases || []).slice(0, 2).map((d: string, i: number) => (
-                            <Badge key={i} variant="outline">{d}</Badge>
+                            <Badge key={i} variant="outline" className={getConditionClass(d)}>{d}</Badge>
                           ))}
                           {(patient.past_respiratory_diseases || []).length > 2 && (
                             <Badge variant="outline">+{(patient.past_respiratory_diseases || []).length - 2} more</Badge>
                           )}
                         </div>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="px-4 align-middle">
                         {getResultBadge(
                           patient.latest_screening?.tb_result || null,
                           patient.latest_screening?.respiratory_result || null
                         )}
                       </TableCell>
-                      <TableCell className="text-sm text-aura-muted">
+                      <TableCell className="px-4 text-sm text-aura-muted align-middle">
                         {new Date(patient.created_at).toLocaleDateString()}
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="w-32 px-4 text-right align-middle">
                         <div className="flex items-center justify-end gap-2">
-                          <Button variant="ghost" size="icon" onClick={() => openEditDialog(patient)} aria-label={`Edit ${patient.full_name}`}>
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="icon" onClick={() => confirmDelete(patient)} aria-label={`Delete ${patient.full_name}`}>
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
+                          <div className="rounded-full p-1 transition-colors hover:bg-gray-200">
+                            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" onClick={() => openEditDialog(patient)} aria-label={`Edit ${patient.full_name}`}>
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          </div>
+                          <div className="rounded-full p-1 transition-colors hover:bg-gray-200">
+                            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" onClick={() => confirmDelete(patient)} aria-label={`Delete ${patient.full_name}`}>
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </div>
                         </div>
                       </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
+              <div className="flex items-center justify-between border-t border-aura-border-soft px-4 py-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(currentPage - 1)}
+                  disabled={currentPage === 1}
+                >
+                  Previous
+                </Button>
+                <span className="text-sm text-aura-muted">Page {currentPage} of {totalPages}</span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                </Button>
+              </div>
             </div>
           )}
         </CardContent>
@@ -399,14 +478,31 @@ export function Patients() {
                     control={form.control}
                     name="smoking_history"
                     render={({ field }) => (
-                      <FormItem className="flex items-center space-x-2">
-                        <FormControl>
-                          <Checkbox
-                            checked={field.value}
-                            onChange={(e) => field.onChange(e.target.checked)}
-                          />
-                        </FormControl>
+                      <FormItem>
                         <FormLabel>Smoking History</FormLabel>
+                        <FormControl>
+                          <div className="flex gap-6 pt-1">
+                            <label className="flex cursor-pointer items-center gap-2">
+                              <input
+                                type="radio"
+                                checked={field.value === true}
+                                onChange={() => field.onChange(true)}
+                                className="h-4 w-4"
+                              />
+                              <span className="text-sm">Yes</span>
+                            </label>
+                            <label className="flex cursor-pointer items-center gap-2">
+                              <input
+                                type="radio"
+                                checked={field.value === false}
+                                onChange={() => field.onChange(false)}
+                                className="h-4 w-4"
+                              />
+                              <span className="text-sm">No</span>
+                            </label>
+                          </div>
+                        </FormControl>
+                        <FormMessage />
                       </FormItem>
                     )}
                   />

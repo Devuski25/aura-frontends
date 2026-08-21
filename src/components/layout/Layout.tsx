@@ -55,9 +55,9 @@ export function Layout() {
 
   return (
     <div className="min-h-screen overflow-x-clip bg-aura-surface">
-      <div className="flex">
+      <div className="flex min-h-screen flex-row">
         <div className="flex min-w-0 flex-1 flex-col">
-          <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-aura-border-soft bg-aura-elevated/90 px-4 backdrop-blur-md lg:px-8">
+          <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-aura-border-soft bg-aura-elevated/90 px-4 backdrop-blur-md lg:px-6">
             <motion.button
               whileTap={{ scale: 0.88 }}
               transition={{ type: "spring", stiffness: 500, damping: 20 }}
@@ -111,7 +111,7 @@ export function Layout() {
               initial="initial"
               animate="animate"
               exit="exit"
-              className="p-4 lg:p-8"
+              className="p-4 lg:p-6"
             >
               <Outlet />
             </motion.main>

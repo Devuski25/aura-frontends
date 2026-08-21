@@ -136,12 +136,12 @@ export function NewPatientModal({ open, onOpenChange, onPatientCreated, initialD
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl text-aura-text">
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="text-aura-text">
               New Patient Screening
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-aura-muted">
               Enter patient details for a new cough screening.
             </DialogDescription>
           </DialogHeader>
@@ -152,9 +152,14 @@ export function NewPatientModal({ open, onOpenChange, onPatientCreated, initialD
                 name="full_name"
                 render={({ field, fieldState }) => (
                   <FormItem>
-                    <FormLabel>Full Name</FormLabel>
+                    <FormLabel className="text-aura-text">Full Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="Dr. John Smith" autoComplete="name" {...field} />
+                      <Input
+                        placeholder="Dr. John Smith"
+                        autoComplete="name"
+                        className="text-[#333333] placeholder:text-[#6b7f75]"
+                        {...field}
+                      />
                     </FormControl>
                     {fieldState.error && <FormMessage>{fieldState.error.message}</FormMessage>}
                   </FormItem>
@@ -165,13 +170,13 @@ export function NewPatientModal({ open, onOpenChange, onPatientCreated, initialD
                 name="date_of_birth"
                 render={({ field, fieldState }) => (
                   <FormItem>
-                    <FormLabel>Date of Birth</FormLabel>
+                    <FormLabel className="text-aura-text">Date of Birth</FormLabel>
                     <FormControl>
                       <div className="relative">
-                        <Calendar className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                        <Calendar className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-aura-muted" />
                         <Input
                           type="date"
-                          className="pl-10"
+                          className="pl-10 text-[#333333] placeholder:text-[#6b7f75]"
                           autoComplete="bday"
                           max={new Date().toISOString().split("T")[0]}
                           onWheel={(e) => e.currentTarget.blur()}
@@ -188,10 +193,10 @@ export function NewPatientModal({ open, onOpenChange, onPatientCreated, initialD
                 name="gender"
                 render={({ field, fieldState }) => (
                   <FormItem>
-                    <FormLabel>Gender</FormLabel>
+                    <FormLabel className="text-aura-text">Gender</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="text-[#333333]">
                           <SelectValue placeholder="Select gender" />
                         </SelectTrigger>
                       </FormControl>
@@ -206,13 +211,13 @@ export function NewPatientModal({ open, onOpenChange, onPatientCreated, initialD
                 )}
               />
               <div>
-                <p className="text-sm font-medium mb-2">Age</p>
+                <p className="mb-2 text-sm font-medium text-aura-text">Age</p>
                 <Input
                   type="text"
                   readOnly
                   value={age !== null ? `${age} years (${ageBracket})` : ""}
                   placeholder="—"
-                  className="bg-aura-surface-alt h-9"
+                  className="h-9 bg-aura-surface-alt text-[#333333] placeholder:text-[#6b7f75]"
                 />
               </div>
             </div>
@@ -222,10 +227,10 @@ export function NewPatientModal({ open, onOpenChange, onPatientCreated, initialD
               name="smoking_history"
               render={({ field, fieldState }) => (
                 <FormItem>
-                  <FormLabel>Smoking</FormLabel>
+                  <FormLabel className="text-aura-text">Smoking</FormLabel>
                   <FormControl>
                     <div className="flex gap-6 pt-1">
-                      <label className="flex items-center gap-2 cursor-pointer">
+                      <label className="flex cursor-pointer items-center gap-2 text-[#333333]">
                         <input
                           type="radio"
                           checked={field.value === true}
@@ -234,7 +239,7 @@ export function NewPatientModal({ open, onOpenChange, onPatientCreated, initialD
                         />
                         <span className="text-sm">Yes</span>
                       </label>
-                      <label className="flex items-center gap-2 cursor-pointer">
+                      <label className="flex cursor-pointer items-center gap-2 text-[#333333]">
                         <input
                           type="radio"
                           checked={field.value === false}
@@ -255,17 +260,17 @@ export function NewPatientModal({ open, onOpenChange, onPatientCreated, initialD
               name="past_respiratory_diseases"
               render={({ field, fieldState }) => (
                 <FormItem>
-                  <FormLabel>Past Respiratory Diseases</FormLabel>
+                  <FormLabel className="text-aura-text">Past Respiratory Diseases</FormLabel>
                   <FormControl>
                     <div className="flex flex-wrap gap-1.5">
                       {PAST_DISEASES.map((disease) => (
                         <label
                           key={disease}
                           className={cn(
-                            "inline-flex items-center gap-1.5 rounded-full border px-3 py-2 text-sm transition-colors cursor-pointer",
+                            "inline-flex items-center gap-1.5 rounded-full border px-3 py-2 text-sm text-aura-text transition-colors cursor-pointer",
                             field.value.includes(disease)
                               ? "border-primary bg-primary text-primary-foreground"
-                              : "border-muted-foreground/25 hover:border-primary/50"
+                              : "border-aura-border hover:border-primary/50"
                           )}
                         >
                           <Checkbox
@@ -288,7 +293,7 @@ export function NewPatientModal({ open, onOpenChange, onPatientCreated, initialD
                       ))}
                     </div>
                   </FormControl>
-                  <FormDescription>Select all that apply</FormDescription>
+                  <FormDescription className="text-aura-muted">Select all that apply</FormDescription>
                   {fieldState.error && <FormMessage>{fieldState.error.message}</FormMessage>}
                 </FormItem>
               )}
@@ -299,17 +304,17 @@ export function NewPatientModal({ open, onOpenChange, onPatientCreated, initialD
               name="symptoms"
               render={({ field, fieldState }) => (
                 <FormItem>
-                  <FormLabel>Current Symptoms</FormLabel>
+                  <FormLabel className="text-aura-text">Current Symptoms</FormLabel>
                   <FormControl>
                     <div className="flex flex-wrap gap-1.5">
                       {SYMPTOMS.map((symptom) => (
                         <label
                           key={symptom}
                           className={cn(
-                            "inline-flex items-center gap-1.5 rounded-full border px-3 py-2 text-sm transition-colors cursor-pointer",
+                            "inline-flex items-center gap-1.5 rounded-full border px-3 py-2 text-sm text-aura-text transition-colors cursor-pointer",
                             field.value.includes(symptom)
                               ? "border-primary bg-primary text-primary-foreground"
-                              : "border-muted-foreground/25 hover:border-primary/50"
+                              : "border-aura-border hover:border-primary/50"
                           )}
                         >
                           <Checkbox
@@ -332,7 +337,7 @@ export function NewPatientModal({ open, onOpenChange, onPatientCreated, initialD
                       ))}
                     </div>
                   </FormControl>
-                  <FormDescription>Select all current symptoms</FormDescription>
+                  <FormDescription className="text-aura-muted">Select all current symptoms</FormDescription>
                   {fieldState.error && <FormMessage>{fieldState.error.message}</FormMessage>}
                 </FormItem>
               )}

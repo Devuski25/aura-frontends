@@ -151,15 +151,15 @@ export function Sidebar({
             : { x: drawerSpring, width: spring.snappy }
         }
         className={cn(
-          "flex flex-col border-l border-aura-border-soft bg-aura-elevated",
+          "flex flex-col border-l border-[#264238] bg-gradient-to-b from-[#132420] to-[#264238] text-[#eaf2ee]",
           isMobile
-            ? "fixed inset-y-0 right-0 z-50 shadow-[-12px_0_40px_rgba(0,0,0,0.08)]"
+            ? "fixed inset-y-0 right-0 z-50 shadow-[-12px_0_40px_rgba(0,0,0,0.15)]"
             : "sticky top-0 h-screen shrink-0"
         )}
       >
-        <div className="flex h-16 shrink-0 items-center justify-between border-b border-aura-border-soft px-4">
+        <div className="flex h-16 shrink-0 items-center justify-between border-b border-white/10 px-4">
           {showLabels ? (
-            <Logo withSubtitle />
+            <Logo withSubtitle inverse />
           ) : (
             <Logo variant="mark" className="mx-auto" />
           )}
@@ -167,7 +167,7 @@ export function Sidebar({
             whileTap={{ scale: 0.88 }}
             transition={{ type: "spring", stiffness: 500, damping: 20 }}
             className={cn(
-              "rounded-md p-2 text-aura-muted hover:bg-aura-surface-alt",
+              "rounded-md p-2 text-[#eaf2ee] hover:bg-white/10",
               !isMobile && "hidden"
             )}
             onClick={onClose}
@@ -177,7 +177,7 @@ export function Sidebar({
           </motion.button>
         </div>
 
-        <nav className="flex-1 space-y-1 p-3">
+        <nav className="flex-1 space-y-1 px-3 pb-3 pt-2">
           {items.map((item) => {
             const isActive =
               item.href === "/dashboard"
@@ -195,7 +195,7 @@ export function Sidebar({
                   <motion.span
                     layoutId="activeNav"
                     transition={reduceMotion ? { duration: 0 } : spring.snappy}
-                    className="absolute inset-0 rounded-lg bg-aura-surface-alt"
+                    className="absolute inset-0 rounded-lg bg-[#eaf2ee]"
                   />
                 )}
                 <Link
@@ -208,8 +208,8 @@ export function Sidebar({
                     "relative z-10 flex min-h-[44px] items-center rounded-lg px-3 text-sm font-medium transition-colors",
                     showLabels ? "justify-start" : "justify-center",
                     isActive
-                      ? "text-aura-text"
-                      : "text-aura-muted hover:bg-aura-surface-alt hover:text-aura-text"
+                      ? "text-[#132420]"
+                      : "text-[#cbd9d2] hover:bg-white/10 hover:text-white"
                   )}
                 >
                   <motion.span
@@ -231,7 +231,7 @@ export function Sidebar({
                       initial="hidden"
                       animate="visible"
                       exit="exit"
-                      className="pointer-events-none absolute right-full top-1/2 z-50 mr-3 -translate-y-1/2 whitespace-nowrap rounded-lg bg-aura-text px-3 py-1.5 text-xs font-medium text-white shadow-aura-md"
+                      className="pointer-events-none absolute right-full top-1/2 z-50 mr-3 -translate-y-1/2 whitespace-nowrap rounded-lg bg-[#132420] px-3 py-1.5 text-xs font-medium text-white shadow-aura-md"
                     >
                       {item.name}
                     </motion.span>
@@ -242,9 +242,9 @@ export function Sidebar({
           })}
         </nav>
 
-        <div className="shrink-0 border-t border-aura-border-soft p-3">
+        <div className="shrink-0 border-t border-white/10 p-3">
           {showLabels ? (
-            <div className="flex items-center gap-3 rounded-xl border border-aura-border-soft bg-aura-bg-card p-3">
+            <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 p-3">
               <Avatar className="h-9 w-9">
                 <AvatarImage
                   src={avatarSrc}
@@ -253,13 +253,13 @@ export function Sidebar({
                 <AvatarFallback>{avatarFallback}</AvatarFallback>
               </Avatar>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-aura-text">
+                <p className="truncate text-sm font-medium text-white">
                   {user?.full_name || "Clinician"}
                 </p>
-                <p className="flex items-center gap-1.5 text-xs capitalize text-aura-muted">
+                <p className="flex items-center gap-1.5 text-xs capitalize text-[#a9bdb4]">
                   <span className="relative flex h-2 w-2 shrink-0">
-                    <span className="absolute inline-flex h-full w-full rounded-full bg-aura-accent opacity-30" />
-                    <span className="relative inline-flex h-2 w-2 rounded-full bg-aura-accent" />
+                    <span className="absolute inline-flex h-full w-full rounded-full bg-[#7fd9b8] opacity-40" />
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-[#7fd9b8]" />
                   </span>
                   <span className="truncate">
                     {user?.role?.replace("_", " ") || "Clinician"}
@@ -273,7 +273,7 @@ export function Sidebar({
                 onClick={onSignOut}
                 aria-label="Sign out"
                 title="Sign out"
-                className="rounded-lg p-2 text-aura-muted transition-colors hover:bg-aura-surface-alt hover:text-destructive"
+                className="rounded-lg p-2 text-[#a9bdb4] transition-colors hover:bg-white/10 hover:text-white"
               >
                 <LogOut className="h-4 w-4" aria-hidden="true" />
               </motion.button>
@@ -291,7 +291,7 @@ export function Sidebar({
                 onClick={onSignOut}
                 aria-label="Sign out"
                 title="Sign out"
-                className="rounded-lg p-2 text-aura-muted transition-colors hover:bg-aura-surface-alt hover:text-destructive"
+                className="rounded-lg p-2 text-[#a9bdb4] transition-colors hover:bg-white/10 hover:text-white"
               >
                 <LogOut className="h-4 w-4" aria-hidden="true" />
               </motion.button>

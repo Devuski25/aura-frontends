@@ -83,13 +83,13 @@ export function Login() {
       variants={pageVariants}
       initial="initial"
       animate="animate"
-      className="min-h-screen flex items-center justify-center bg-aura-surface px-4 py-12">
+      className="min-h-screen flex items-center justify-center bg-aura-accent px-4 py-12">
       <div className="w-full max-w-md">
         <button
           onClick={() => navigate("/")}
           aria-label="Back to Website"
           title="Back to Website"
-          className="mb-4 flex h-10 w-10 items-center justify-center rounded-full border border-aura-border-soft bg-white text-aura-accent shadow-aura-sm transition-all duration-200 hover:border-aura-accent hover:bg-aura-accent-soft hover:text-aura-accent-dark hover:-translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-aura-accent focus-visible:ring-offset-2"
+          className="mb-4 flex h-10 w-10 items-center justify-center rounded-full border border-white/30 bg-white text-aura-accent shadow-aura-sm transition-all duration-200 hover:border-white hover:bg-white/95 hover:text-aura-accent-dark hover:-translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-aura-accent"
         >
           <ArrowLeft className="h-5 w-5" />
         </button>
@@ -224,7 +224,7 @@ export function Login() {
                 <div className="w-full border-t border-aura-border-soft" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="bg-aura-surface px-2 text-aura-muted">Or continue with</span>
+                <span className="bg-aura-accent px-2 text-white/80">Or continue with</span>
               </div>
             </div>
 

@@ -19,6 +19,7 @@ type LogoProps = {
   size?: LogoSize
   withSubtitle?: boolean
   className?: string
+  inverse?: boolean
 }
 
 export function Logo({
@@ -26,6 +27,7 @@ export function Logo({
   size = "md",
   withSubtitle = false,
   className,
+  inverse = false,
 }: LogoProps) {
   if (variant === "mark") {
     return (
@@ -49,22 +51,27 @@ export function Logo({
     >
       <span
         className={cn(
-          "flex items-baseline font-display font-semibold tracking-widest text-aura-text",
+          "flex items-baseline font-display font-semibold tracking-widest",
+          inverse ? "text-white" : "text-aura-text",
           wordmarkSize[size]
         )}
       >
         <span>AURA</span>
-        <span aria-hidden="true" className="mx-0.5 text-aura-muted">
+        <span aria-hidden="true" className={cn("mx-0.5", inverse ? "text-white/70" : "text-aura-muted")}>
           -
         </span>
-        <span className="bg-gradient-to-r from-aura-accent to-aura-accent-dark bg-clip-text text-transparent">
+        <span className={cn(
+          "bg-gradient-to-r bg-clip-text text-transparent",
+          inverse ? "from-[#7fd9b8] to-[#4c8b6e]" : "from-aura-accent to-aura-accent-dark"
+        )}>
           Dx
         </span>
       </span>
       {withSubtitle && (
         <span
           className={cn(
-            "mt-1 truncate font-medium uppercase tracking-[0.18em] text-aura-muted",
+            "mt-1 truncate font-medium uppercase tracking-[0.18em]",
+            inverse ? "text-[#b9ccc3]" : "text-aura-muted",
             subtitleSize[size]
           )}
         >

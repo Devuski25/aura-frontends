@@ -184,7 +184,7 @@ export function Register() {
       variants={pageVariants}
       initial="initial"
       animate="animate"
-      className="min-h-screen flex items-center justify-center bg-aura-surface px-4 py-12">
+      className="min-h-screen flex items-center justify-center bg-aura-accent px-4 py-12">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold">Create Account</CardTitle>
@@ -458,7 +458,7 @@ export function Register() {
                 <div className="w-full border-t border-aura-border-soft" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="bg-aura-surface px-2 text-aura-muted">Or continue with</span>
+                <span className="bg-white px-2 text-aura-muted">Or continue with</span>
               </div>
             </div>
 

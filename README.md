@@ -58,3 +58,4 @@ Each groupmate edits only their own folder. Merging = copying their folder back
 into this project. No file collisions by construction.
 
 > No new npm packages without approval — the project is feature-complete.
+"# AURADx-MAK" 

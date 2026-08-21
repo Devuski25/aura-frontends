@@ -193,7 +193,7 @@ export function Screenings() {
           ) : (
             <div className="overflow-x-auto overflow-y-auto max-h-[600px]">
               <Table>
-                <TableHeader className="sticky top-0 z-10 bg-aura-elevated">
+                <TableHeader className="sticky top-0 z-10 bg-gray-50">
                   <TableRow>
                     <TableHead aria-sort={sortField === "patient_name" && sortDirection ? (sortDirection === "asc" ? "ascending" : "descending") : undefined}>
                       <button type="button" onClick={() => handleSort("patient_name")} className="flex items-center gap-1 cursor-pointer select-none">
@@ -221,7 +221,7 @@ export function Screenings() {
                 </TableHeader>
                 <TableBody>
                   {filteredAndSortedScreenings.map(screening => (
-                    <TableRow key={screening.id}>
+                    <TableRow key={screening.id} className="hover:bg-gray-50">
                       <TableCell>
                         <div className="font-medium">{screening.patient_name}</div>
                         <div className="text-xs text-aura-muted">{screening.clinician_name}</div>
@@ -239,12 +239,16 @@ export function Screenings() {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-2">
-                          <Button variant="ghost" size="icon" onClick={() => setDetailScreening(screening)} title="View Details" aria-label={`View details for ${screening.patient_name}`}>
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="icon" onClick={() => downloadPDF(screening.id)} title="Download PDF" aria-label={`Download PDF for ${screening.patient_name}`}>
-                            <Download className="h-4 w-4" />
-                          </Button>
+                          <div className="rounded-full p-1 transition-colors hover:bg-gray-200">
+                            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" onClick={() => setDetailScreening(screening)} title="View Details" aria-label={`View details for ${screening.patient_name}`}>
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          </div>
+                          <div className="rounded-full p-1 transition-colors hover:bg-gray-200">
+                            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" onClick={() => downloadPDF(screening.id)} title="Download PDF" aria-label={`Download PDF for ${screening.patient_name}`}>
+                              <Download className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </div>
                       </TableCell>
                     </TableRow>

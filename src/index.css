@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 @import "tailwindcss";
 
 @theme {
@@ -49,6 +50,22 @@
 
   /* Brand display font (logo typography) */
   --font-display: "Space Grotesk", "Poppins", sans-serif;
+
+  /* Clinical precision typography */
+  --font-body: "Inter", "Poppins", sans-serif;
+  --font-mono: "IBM Plex Mono", monospace;
+
+  /* AURA-Dx clinical color tokens */
+  --color-aura-ink: #12211F;
+  --color-aura-forest: #0E3B36;
+  --color-aura-forest-light: #155E54;
+  --color-aura-mint: #1E9E73;
+  --color-aura-mint-soft: #E3F5EC;
+  --color-aura-coral: #E2543A;
+  --color-aura-coral-soft: #FCEAE6;
+  --color-aura-sage: #EAF1EC;
+  --color-aura-line: #E1E7E2;
+  --color-aura-muted: #6B7B76;
 
   /* Semantic surface/elevation tokens */
   --color-aura-surface: #f7fcf9;

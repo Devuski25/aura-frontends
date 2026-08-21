@@ -7,10 +7,11 @@ interface ProgressProps
   extends React.HTMLAttributes<HTMLDivElement> {
   value: number
   max?: number
+  indicatorClassName?: string
 }
 
 const Progress = React.forwardRef<HTMLDivElement, ProgressProps>(
-  ({ className, value, max = 100, ...props }, ref) => {
+  ({ className, value, max = 100, indicatorClassName, ...props }, ref) => {
     return (
       <div
         ref={ref}
@@ -25,7 +26,10 @@ const Progress = React.forwardRef<HTMLDivElement, ProgressProps>(
         {...props}
       >
         <div
-          className="h-full bg-primary transition-all duration-300 ease-out"
+          className={cn(
+            "h-full bg-primary transition-all duration-300 ease-out",
+            indicatorClassName
+          )}
           style={{
             width: `${Math.min(Math.max(value, 0), max) / max * 100}%`,
           }}

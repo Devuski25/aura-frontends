@@ -262,7 +262,7 @@ export function PatientDetail() {
           ) : (
             <div className="overflow-x-auto">
               <Table>
-                <TableHeader>
+                <TableHeader className="sticky top-0 z-10 bg-gray-50">
                   <TableRow>
                     <TableHead>Date</TableHead>
                     <TableHead>TB Result</TableHead>
@@ -274,7 +274,7 @@ export function PatientDetail() {
                 </TableHeader>
                 <TableBody>
                   {screenings.map((s) => (
-                    <TableRow key={s.id}>
+                    <TableRow key={s.id} className="hover:bg-gray-50">
                       <TableCell>
                         <div>{new Date(s.created_at).toLocaleDateString()}</div>
                         <div className="text-xs text-aura-muted">{new Date(s.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</div>

@@ -2,23 +2,36 @@ import { Badge } from "@/components/ui/badge"
 import { AlertTriangle, CheckCircle } from "lucide-react"
 
 export function getTbBadge(label: string) {
+  if (label === "TB") {
+    return (
+      <Badge className="gap-1.5 border-red-200 bg-red-50 px-3 py-1 text-red-700 hover:bg-red-100">
+        <AlertTriangle className="h-3.5 w-3.5" />
+        {label}
+      </Badge>
+    )
+  }
   return (
-    <Badge variant={label === "TB" ? "destructive" : "success"} className="gap-1">
-      {label === "TB" && <AlertTriangle className="h-3 w-3" />}
-      {label === "Non-TB" && <CheckCircle className="h-3 w-3" />}
+    <Badge className="gap-1.5 border-emerald-200 bg-emerald-50 px-3 py-1 text-emerald-700 hover:bg-emerald-100">
+      <CheckCircle className="h-3.5 w-3.5" />
       {label}
     </Badge>
   )
 }
 
 export function getRespBadge(label: string | null) {
-  if (!label) return <Badge variant="secondary">N/A</Badge>
-  const variants: Record<string, "default" | "success" | "warning" | "destructive"> = {
-    Healthy: "success",
-    Pneumonia: "destructive",
-    COPD: "warning",
+  if (!label) return <Badge variant="secondary" className="px-3 py-1">N/A</Badge>
+  const styles: Record<string, string> = {
+    Healthy: "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100",
+    Pneumonia: "border-red-200 bg-red-50 text-red-700 hover:bg-red-100",
+    COPD: "border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100",
   }
-  return <Badge variant={variants[label] || "default"}>{label}</Badge>
+  return (
+    <Badge className={`gap-1.5 px-3 py-1 ${styles[label] || ""}`}>
+      {label === "Healthy" && <CheckCircle className="h-3.5 w-3.5" />}
+      {label === "Pneumonia" && <AlertTriangle className="h-3.5 w-3.5" />}
+      {label}
+    </Badge>
+  )
 }
 
 export function getStatusBadge(status: string) {
