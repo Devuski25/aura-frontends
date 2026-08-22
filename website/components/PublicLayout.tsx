@@ -18,7 +18,7 @@ export function PublicLayout() {
   return (
     <div className="min-h-screen bg-aura-bg font-[Poppins,sans-serif] text-aura-text">
       <header className="relative pt-5 pb-2 px-6">
-        <div className="mx-auto flex max-w-[1040px] items-center justify-between gap-4 rounded-full border border-aura-border-soft bg-white/85 px-5 py-2 shadow-aura-md backdrop-blur-md">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 rounded-full border border-aura-border-soft bg-white/85 px-5 py-2 shadow-aura-md backdrop-blur-md">
           <Link
             to="/"
             aria-label="AURA-Dx — Acoustic Unit for Respiratory Analysis"
@@ -65,7 +65,7 @@ export function PublicLayout() {
           <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} transition={{ type: "spring", stiffness: 400, damping: 17 }}>
             <Link
               to="/login"
-              className="block shrink-0 rounded-full bg-gradient-to-r from-aura-accent to-aura-accent-dark px-5 py-2 text-sm font-bold text-white no-underline shadow-[0_3px_12px_rgba(42,154,99,0.28)] transition-all duration-200 hover:from-aura-accent-dark hover:to-aura-accent-dark hover:-translate-y-px hover:shadow-[0_5px_16px_rgba(42,154,99,0.35)]"
+              className="block shrink-0 rounded-full bg-aura-forest px-5 py-2 text-sm font-semibold text-white no-underline shadow-md transition-[background-color,box-shadow] duration-150 hover:bg-green-700 hover:shadow-lg"
             >
               Login
             </Link>
@@ -86,8 +86,8 @@ export function PublicLayout() {
       </AnimatePresence>
 
       <footer className="mt-3 border-t border-aura-border bg-white px-6 py-10 pb-7">
-        <div className="mx-auto max-w-[1040px]">
-          <div className="flex flex-wrap justify-between gap-6 text-sm text-aura-muted">
+        <div className="mx-auto max-w-6xl">
+          <div className="flex flex-wrap items-start justify-between gap-8 text-sm text-aura-muted">
             <div className="max-w-md">
               <strong className="text-base text-aura-text">AURA-Dx</strong>
               <br />
@@ -96,6 +96,20 @@ export function PublicLayout() {
               <br />
               BS Computer Engineering thesis, University of Rizal System - Morong Campus.
             </div>
+            <nav aria-label="Footer">
+              <ul className="m-0 flex list-none flex-col gap-2.5 p-0">
+                {NAV_ITEMS.map((item) => (
+                  <li key={item.path}>
+                    <Link
+                      to={item.path}
+                      className="text-sm font-medium text-aura-muted no-underline transition-colors hover:text-aura-accent-dark"
+                    >
+                      {item.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
           </div>
           <div className="mt-6 border-t border-aura-border-soft pt-4 text-xs text-aura-muted">
             For research and clinical-support use only. Not a substitute for professional medical diagnosis.

@@ -1,7 +1,9 @@
 "use client"
 
 import { useState, useMemo } from "react"
-import { Search, ChevronUp, ChevronDown, Download, Eye, AlertTriangle, CheckCircle, Calendar, Stethoscope, FileText } from "lucide-react"
+import { useNavigate } from "react-router-dom"
+import { motion, useReducedMotion } from "framer-motion"
+import { Search, ChevronUp, ChevronDown, Download, Eye, AlertTriangle, CheckCircle, Calendar, Stethoscope, FileText, Plus, SearchX } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
@@ -9,9 +11,11 @@ import { Badge } from "@/components/ui/badge"
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
+import { staggerContainer, staggerItem } from "@/lib/motion"
 import { MOCK_SCREENINGS } from "@/mocks/data"
 import { getTbBadge, getRespBadge, getResultBadge, getConfidenceColor } from "@clinician/lib/badge-helpers"
 import { toast } from "sonner"
+import { EmptyState } from "@clinician/components/EmptyState"
 import {
   Dialog,
   DialogContent,
@@ -52,7 +56,25 @@ interface Screening {
 
 type SortableField = keyof Pick<Screening, "patient_name" | "created_at" | "respiratory_result" | "status">
 
+const createdDateFormat = new Intl.DateTimeFormat(undefined, { year: "numeric", month: "short", day: "numeric" })
+const dateTimeFormat = new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" })
+
+function computeAgeLabel(screening: Screening): string {
+  if (screening.age_bracket) return screening.age_bracket
+  if (!screening.date_of_birth) return "—"
+  const birthDate = new Date(screening.date_of_birth)
+  if (isNaN(birthDate.getTime())) return "—"
+  const today = new Date()
+  let age = today.getFullYear() - birthDate.getFullYear()
+  const monthDiff = today.getMonth() - birthDate.getMonth()
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+    age--
+  }
+  return `${age}y`
+}
+
 export function Screenings() {
+  const navigate = useNavigate()
   const screenings = MOCK_SCREENINGS as unknown as Screening[]
   const [search, setSearch] = useState("")
   const [classFilter, setClassFilter] = useState("all")
@@ -60,6 +82,12 @@ export function Screenings() {
   const [sortField, setSortField] = useState<SortableField>("created_at")
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc")
   const [detailScreening, setDetailScreening] = useState<Screening | null>(null)
+
+  const reduceMotion = useReducedMotion()
+  const staggerProps = reduceMotion
+    ? {}
+    : { variants: staggerContainer, initial: "hidden" as const, animate: "visible" as const }
+  const itemProps = reduceMotion ? {} : { variants: staggerItem }
 
   const handleSort = (field: SortableField) => {
     if (sortField === field) {
@@ -134,66 +162,74 @@ export function Screenings() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold">Screening Records</h1>
-          <p className="text-aura-muted">View and manage patient screening records</p>
-        </div>
+      <div>
+        <h1 className="font-display text-2xl font-bold text-aura-ink">Screening Records</h1>
+        <p className="text-aura-muted">View and manage patient screening records</p>
       </div>
 
-      {/* Filters */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="relative flex-1 max-w-xs">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-aura-muted" />
-              <Input
-                placeholder="Search patient, clinic, clinician..."
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                className="pl-9"
-              />
-            </div>
-            <Select value={classFilter} onValueChange={setClassFilter}>
-              <SelectTrigger className="w-[160px]">
-                <SelectValue placeholder="Class" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All</SelectItem>
-                <SelectItem value="Tuberculosis">Tuberculosis</SelectItem>
-                <SelectItem value="Healthy">Healthy</SelectItem>
-                <SelectItem value="COPD">COPD</SelectItem>
-                <SelectItem value="Pneumonia">Pneumonia</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={genderFilter} onValueChange={setGenderFilter}>
-              <SelectTrigger className="w-[160px]">
-                <SelectValue placeholder="Gender" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All</SelectItem>
-                <SelectItem value="male">Male</SelectItem>
-                <SelectItem value="female">Female</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Screenings Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Screenings ({filteredAndSortedScreenings.length} of {screenings.length})</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <motion.div {...staggerProps}>
+        <motion.div {...itemProps}>
+          <Card className="overflow-hidden rounded-2xl border border-aura-line bg-white shadow-aura-sm">
+            <CardHeader className="border-b border-aura-line px-6 py-5">
+              <div className="flex flex-col justify-between gap-3 lg:flex-row lg:items-center">
+                <div>
+                  <CardTitle className="font-display text-lg font-semibold text-aura-ink">All Screenings</CardTitle>
+                  <p className="mt-1 text-sm tabular-nums text-aura-muted">
+                    Showing {filteredAndSortedScreenings.length} of {screenings.length} records
+                  </p>
+                </div>
+                <Button onClick={() => navigate("/dashboard/screening")} className="h-10 shrink-0 gap-2">
+                  <Plus className="h-4 w-4" aria-hidden="true" />
+                  New Screening
+                </Button>
+              </div>
+              <div className="mt-4 flex flex-col gap-3 md:flex-row md:items-center">
+                <div className="relative max-w-xs flex-1">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-aura-muted" aria-hidden="true" />
+                  <Input
+                    type="search"
+                    placeholder="Patient, clinic, clinician…"
+                    aria-label="Search screenings by patient, clinic, or clinician"
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                    className="h-10 pl-9"
+                  />
+                </div>
+                <Select value={classFilter} onValueChange={setClassFilter}>
+                  <SelectTrigger className="h-10 w-full md:w-[170px]" aria-label="Filter by result class">
+                    <SelectValue placeholder="Class" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All</SelectItem>
+                    <SelectItem value="Tuberculosis">Tuberculosis</SelectItem>
+                    <SelectItem value="Healthy">Healthy</SelectItem>
+                    <SelectItem value="COPD">COPD</SelectItem>
+                    <SelectItem value="Pneumonia">Pneumonia</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={genderFilter} onValueChange={setGenderFilter}>
+                  <SelectTrigger className="h-10 w-full md:w-[160px]" aria-label="Filter by gender">
+                    <SelectValue placeholder="Gender" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All</SelectItem>
+                    <SelectItem value="male">Male</SelectItem>
+                    <SelectItem value="female">Female</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardHeader>
+            <CardContent className="p-0">
           {filteredAndSortedScreenings.length === 0 ? (
-            <div className="text-center py-8 text-aura-muted">
-              No screenings found.
-            </div>
+            <EmptyState
+              icon={SearchX}
+              title="No Screenings Found"
+              hint="Try adjusting your search or filters"
+            />
           ) : (
-            <div className="overflow-x-auto overflow-y-auto max-h-[600px]">
+            <div className="max-h-[600px] overflow-auto overscroll-contain">
               <Table>
-                <TableHeader className="sticky top-0 z-10 bg-gray-50">
+                <TableHeader className="sticky top-0 z-10 bg-aura-sage">
                   <TableRow>
                     <TableHead aria-sort={sortField === "patient_name" && sortDirection ? (sortDirection === "asc" ? "ascending" : "descending") : undefined}>
                       <button type="button" onClick={() => handleSort("patient_name")} className="flex items-center gap-1 cursor-pointer select-none">
@@ -221,34 +257,30 @@ export function Screenings() {
                 </TableHeader>
                 <TableBody>
                   {filteredAndSortedScreenings.map(screening => (
-                    <TableRow key={screening.id} className="hover:bg-gray-50">
+                    <TableRow key={screening.id} className="hover:bg-aura-surface-alt">
                       <TableCell>
                         <div className="font-medium">{screening.patient_name}</div>
                         <div className="text-xs text-aura-muted">{screening.clinician_name}</div>
                       </TableCell>
                       <TableCell>
-<div>
-                           <div className="font-medium">{screening.age_bracket || (screening.date_of_birth ? (() => { const today = new Date(); const birthDate = new Date(screening.date_of_birth); let age = today.getFullYear() - birthDate.getFullYear(); const monthDiff = today.getMonth() - birthDate.getMonth(); if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) age--; return `${age}y`; })() : "—")}</div>
-                           <div className="text-xs text-aura-muted capitalize">{screening.gender}</div>
-                         </div>
+                        <div>
+                          <div className="font-medium tabular-nums">{computeAgeLabel(screening)}</div>
+                          <div className="text-xs capitalize text-aura-muted">{screening.gender}</div>
+                        </div>
                       </TableCell>
                       <TableCell>{getResultBadge(screening.tb_result, screening.respiratory_result)}</TableCell>
                       <TableCell>{getStatusBadge(screening.status, screening.reviewed_by_name)}</TableCell>
-                      <TableCell className="text-sm text-aura-muted">
-                        {new Date(screening.created_at).toLocaleDateString()}
+                      <TableCell className="whitespace-nowrap text-sm tabular-nums text-aura-muted">
+                        {createdDateFormat.format(new Date(screening.created_at))}
                       </TableCell>
                       <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <div className="rounded-full p-1 transition-colors hover:bg-gray-200">
-                            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" onClick={() => setDetailScreening(screening)} title="View Details" aria-label={`View details for ${screening.patient_name}`}>
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                          </div>
-                          <div className="rounded-full p-1 transition-colors hover:bg-gray-200">
-                            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" onClick={() => downloadPDF(screening.id)} title="Download PDF" aria-label={`Download PDF for ${screening.patient_name}`}>
-                              <Download className="h-4 w-4" />
-                            </Button>
-                          </div>
+                        <div className="flex items-center justify-end gap-1">
+                          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full text-aura-muted hover:text-aura-ink" onClick={() => setDetailScreening(screening)} title="View Details" aria-label={`View details for ${screening.patient_name}`}>
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full text-aura-muted hover:text-aura-ink" onClick={() => downloadPDF(screening.id)} title="Download PDF" aria-label={`Download PDF for ${screening.patient_name}`}>
+                            <Download className="h-4 w-4" />
+                          </Button>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -257,12 +289,14 @@ export function Screenings() {
               </Table>
             </div>
           )}
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </motion.div>
 
       {/* Detail Dialog */}
       <Dialog open={!!detailScreening} onOpenChange={open => !open && setDetailScreening(null)}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto overscroll-contain">
           {detailScreening && (
             <DialogHeader>
               <DialogTitle>Screening Details - {detailScreening.patient_name}</DialogTitle>
@@ -308,7 +342,7 @@ export function Screenings() {
                 <CardContent className="grid gap-4 md:grid-cols-4">
                   <div>
                     <p className="text-sm text-aura-muted">Date</p>
-                    <p className="font-medium">{new Date(detailScreening.created_at).toLocaleString()}</p>
+                    <p className="font-medium tabular-nums">{dateTimeFormat.format(new Date(detailScreening.created_at))}</p>
                   </div>
                   <div>
                     <p className="text-sm text-aura-muted">Model Version</p>
@@ -320,7 +354,7 @@ export function Screenings() {
                   </div>
                   <div>
                     <p className="text-sm text-aura-muted">Audio Duration</p>
-                    <p className="font-medium">{detailScreening.audio_duration_sec ? `${detailScreening.audio_duration_sec}s` : "N/A"}</p>
+                    <p className="font-medium tabular-nums">{detailScreening.audio_duration_sec ? `${detailScreening.audio_duration_sec}s` : "N/A"}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -342,7 +376,7 @@ export function Screenings() {
                   <div className="grid gap-4 md:grid-cols-3">
                     <div className="p-4 bg-aura-surface-alt rounded-lg">
                       <p className="text-sm text-aura-muted">Confidence</p>
-                      <p className={cn("text-3xl font-bold font-mono", getConfidenceColor(detailScreening.tb_confidence))}>
+                      <p className={cn("font-mono text-3xl font-bold tabular-nums", getConfidenceColor(detailScreening.tb_confidence))}>
                         {(detailScreening.tb_confidence ? detailScreening.tb_confidence * 100 : 0).toFixed(1)}%
                       </p>
                     </div>
@@ -401,7 +435,7 @@ export function Screenings() {
                     <div className="grid gap-4 md:grid-cols-3">
                       <div className="p-4 bg-aura-surface-alt rounded-lg">
                         <p className="text-sm text-aura-muted">Confidence</p>
-                        <p className={cn("text-3xl font-bold font-mono", getConfidenceColor(detailScreening.respiratory_confidence))}>
+                        <p className={cn("font-mono text-3xl font-bold tabular-nums", getConfidenceColor(detailScreening.respiratory_confidence))}>
                           {(detailScreening.respiratory_confidence ? detailScreening.respiratory_confidence * 100 : 0).toFixed(1)}%
                         </p>
                       </div>
@@ -473,7 +507,7 @@ export function Screenings() {
                   </div>
                   <div>
                     <p className="text-sm text-aura-muted">Review Date</p>
-                    <p className="font-medium">{detailScreening.reviewed_at ? new Date(detailScreening.reviewed_at).toLocaleString() : "—"}</p>
+                    <p className="font-medium tabular-nums">{detailScreening.reviewed_at ? dateTimeFormat.format(new Date(detailScreening.reviewed_at)) : "—"}</p>
                   </div>
                   {detailScreening.review_notes && (
                     <div className="md:col-span-3">

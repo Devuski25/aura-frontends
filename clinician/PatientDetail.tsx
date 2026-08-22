@@ -2,11 +2,12 @@
 
 import { useState } from "react"
 import { Link, useParams, useNavigate } from "react-router-dom"
-import { ArrowLeft, Trash2, Calendar, MapPin, Stethoscope, Shield } from "lucide-react"
+import { ArrowLeft, Trash2, Calendar, MapPin, Stethoscope, Shield, FileText } from "lucide-react"
 import { motion } from "framer-motion"
 import { cardHover } from "@/lib/motion"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
+import { EmptyState } from "@clinician/components/EmptyState"
 import { Badge } from "@/components/ui/badge"
 import { MOCK_PATIENTS, MOCK_SCREENINGS } from "@/mocks/data"
 import { toast } from "sonner"
@@ -253,12 +254,16 @@ export function PatientDetail() {
         </CardHeader>
         <CardContent>
           {screenings.length === 0 ? (
-            <div className="text-center py-8 text-aura-muted">
-              <p>No screenings yet</p>
-              <Button className="mt-4" onClick={() => navigate("/dashboard/screening")}>
-                Create First Screening
-              </Button>
-            </div>
+            <EmptyState
+              icon={FileText}
+              title="No screenings yet"
+              hint="Start a new screening for this patient to see results here."
+              action={
+                <Button onClick={() => navigate("/dashboard/screening")}>
+                  Create First Screening
+                </Button>
+              }
+            />
           ) : (
             <div className="overflow-x-auto">
               <Table>

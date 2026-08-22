@@ -1,7 +1,8 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Loader2, Search, Edit, Trash2 } from "lucide-react"
+import { motion, useReducedMotion } from "framer-motion"
+import { Loader2, Search, Edit, Trash2, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
@@ -10,6 +11,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { MOCK_PATIENTS, MOCK_SCREENINGS } from "@/mocks/data"
 import { toast } from "sonner"
+import { EmptyState } from "@clinician/components/EmptyState"
 import {
   Dialog,
   DialogContent,
@@ -29,6 +31,7 @@ import {
 } from "@/components/ui/form"
 import { getResultBadge } from "@clinician/lib/badge-helpers"
 import { cn } from "@/lib/utils"
+import { staggerContainer, staggerItem } from "@/lib/motion"
 import { z } from "zod"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -70,6 +73,8 @@ function computeAge(dateOfBirth: string): number | null {
 }
 
 type PatientFormData = z.infer<typeof patientSchema>
+
+const createdDateFormat = new Intl.DateTimeFormat(undefined, { year: "numeric", month: "short", day: "numeric" })
 
 function buildStaticPatients(): any[] {
   const latestByPatient: Record<string, any> = {}
@@ -134,6 +139,12 @@ export function Patients() {
   const [currentPage, setCurrentPage] = useState(1)
   const deleting = false
   const rowsPerPage = 5
+
+  const reduceMotion = useReducedMotion()
+  const staggerProps = reduceMotion
+    ? {}
+    : { variants: staggerContainer, initial: "hidden" as const, animate: "visible" as const }
+  const itemProps = reduceMotion ? {} : { variants: staggerItem }
 
   const form = useForm<PatientFormData>({
     resolver: zodResolver(patientSchema),
@@ -228,62 +239,67 @@ export function Patients() {
         </div>
       </div>
 
-      {/* Filters */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <div className="relative flex-1 max-w-xs">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-aura-muted" />
-              <Input
-                placeholder="Search patients..."
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                className="h-10 pl-9"
-              />
-            </div>
-            <Select value={genderFilter} onValueChange={setGenderFilter}>
-              <SelectTrigger className="h-10 w-[160px]">
-                <SelectValue placeholder="Gender" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Gender</SelectItem>
-                <SelectItem value="male">Male</SelectItem>
-                <SelectItem value="female">Female</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={diseaseFilter} onValueChange={setDiseaseFilter}>
-              <SelectTrigger className="h-10 w-[170px]">
-                <SelectValue placeholder="Disease" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Diseases</SelectItem>
-                {DISEASE_FILTERS.map(d => (
-                  <SelectItem key={d} value={d}>{d}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button onClick={openCreateDialog} className="h-10 sm:ml-3">
-              Add Patient
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Patients Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="font-display text-lg font-semibold text-aura-ink">Patients Records</CardTitle>
-          <p className="mt-1 text-sm text-aura-muted">Showing {filteredPatients.length} of {patients.length} records</p>
-        </CardHeader>
-        <CardContent>
+      <motion.div {...staggerProps}>
+        <motion.div {...itemProps}>
+          <Card className="overflow-hidden rounded-2xl border border-aura-line bg-white shadow-aura-sm">
+            <CardHeader className="border-b border-aura-line px-6 py-5">
+              <div className="flex flex-col justify-between gap-3 lg:flex-row lg:items-center">
+                <div>
+                  <CardTitle className="font-display text-lg font-semibold text-aura-ink">Patient Records</CardTitle>
+                  <p className="mt-1 text-sm tabular-nums text-aura-muted">
+                    Showing {filteredPatients.length} of {patients.length} records
+                  </p>
+                </div>
+                <Button onClick={openCreateDialog} className="h-10 shrink-0">
+                  Add Patient
+                </Button>
+              </div>
+              <div className="mt-4 flex flex-col gap-3 md:flex-row md:items-center">
+                <div className="relative max-w-xs flex-1">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-aura-muted" aria-hidden="true" />
+                  <Input
+                    type="search"
+                    placeholder="Patient name…"
+                    aria-label="Search patients by name"
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                    className="h-10 pl-9"
+                  />
+                </div>
+                <Select value={genderFilter} onValueChange={setGenderFilter}>
+                  <SelectTrigger className="h-10 w-full md:w-[160px]" aria-label="Filter by gender">
+                    <SelectValue placeholder="Gender" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Gender</SelectItem>
+                    <SelectItem value="male">Male</SelectItem>
+                    <SelectItem value="female">Female</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={diseaseFilter} onValueChange={setDiseaseFilter}>
+                  <SelectTrigger className="h-10 w-full md:w-[170px]" aria-label="Filter by condition">
+                    <SelectValue placeholder="Disease" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Diseases</SelectItem>
+                    {DISEASE_FILTERS.map(d => (
+                      <SelectItem key={d} value={d}>{d}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardHeader>
+            <CardContent className="p-0">
           {filteredPatients.length === 0 ? (
-            <div className="text-center py-8 text-aura-muted">
-              No patients found.
-            </div>
+            <EmptyState
+              icon={Users}
+              title="No Patients Found"
+              hint="Try adjusting your search or filters"
+            />
           ) : (
-            <div>
+            <div className="overflow-x-auto">
               <Table>
-                <TableHeader className="sticky top-0 z-10 bg-aura-sage">
+                <TableHeader className="bg-aura-sage">
                   <TableRow className="align-middle border-b border-aura-line hover:bg-transparent">
                     <TableHead className="px-4 font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-aura-muted">Name</TableHead>
                     <TableHead className="px-4 font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-aura-muted">Age &amp; Gender</TableHead>
@@ -296,7 +312,7 @@ export function Patients() {
                 </TableHeader>
                 <TableBody>
                   {visiblePatients.map(patient => (
-                    <TableRow key={patient.id} className="align-middle border-b border-aura-line hover:bg-aura-sage/60">
+                    <TableRow key={patient.id} className="align-middle border-b border-aura-line hover:bg-aura-surface-alt">
                       <TableCell className="px-4 align-middle">
                         <div className="flex items-center gap-3">
                           <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold ${getAvatarColor(patient.full_name)}`}>
@@ -310,8 +326,8 @@ export function Patients() {
                       </TableCell>
                       <TableCell className="px-4 align-middle">
                         <div>
-                          <div className="font-medium">{patient.age_bracket}</div>
-                          <div className="text-xs text-aura-muted capitalize">{patient.gender}</div>
+                          <div className="font-medium tabular-nums">{patient.age_bracket}</div>
+                          <div className="text-xs capitalize text-aura-muted">{patient.gender}</div>
                         </div>
                       </TableCell>
                       <TableCell className="px-4 align-middle">
@@ -343,8 +359,10 @@ export function Patients() {
                           patient.latest_screening?.respiratory_result || null
                         )}
                       </TableCell>
-                      <TableCell className="px-4 text-sm text-aura-muted align-middle">
-                        {new Date(patient.created_at).toLocaleDateString()}
+                      <TableCell className="px-4 align-middle">
+                        <span className="whitespace-nowrap text-sm tabular-nums text-aura-muted">
+                          {createdDateFormat.format(new Date(patient.created_at))}
+                        </span>
                       </TableCell>
                       <TableCell className="w-32 px-4 text-right align-middle">
                         <div className="flex items-center justify-end gap-1">
@@ -372,48 +390,52 @@ export function Patients() {
                   ))}
                 </TableBody>
               </Table>
-              <div className="flex items-center justify-between border-t border-aura-line px-4 py-4">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage(currentPage - 1)}
-                  disabled={currentPage === 1}
-                  className="border-aura-border text-aura-forest hover:bg-aura-sage hover:text-aura-forest"
-                >
-                  Previous
-                </Button>
-                <div className="flex items-center gap-1">
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                    <button
-                      key={page}
-                      onClick={() => setCurrentPage(page)}
-                      aria-label={`Go to page ${page}`}
-                      aria-current={page === currentPage ? "page" : undefined}
-                      className={cn(
-                        "flex h-9 min-w-9 items-center justify-center rounded-md px-2 text-sm font-medium transition-colors",
-                        page === currentPage
-                          ? "bg-primary text-primary-foreground"
-                          : "text-aura-forest hover:bg-aura-sage"
-                      )}
-                    >
-                      {page}
-                    </button>
-                  ))}
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                  className="border-aura-border text-aura-forest hover:bg-aura-sage hover:text-aura-forest"
-                >
-                  Next
-                </Button>
-              </div>
             </div>
           )}
-        </CardContent>
-      </Card>
+          {filteredPatients.length > 0 && (
+            <div className="flex items-center justify-between border-t border-aura-line px-4 py-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="border-aura-border text-aura-forest hover:bg-aura-sage hover:text-aura-forest"
+              >
+                Previous
+              </Button>
+              <div className="flex items-center gap-1">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    aria-label={`Go to page ${page}`}
+                    aria-current={page === currentPage ? "page" : undefined}
+                    className={cn(
+                      "flex h-9 min-w-9 items-center justify-center rounded-md px-2 text-sm font-medium tabular-nums transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-aura-brand",
+                      page === currentPage
+                        ? "bg-primary text-primary-foreground"
+                        : "text-aura-forest hover:bg-aura-sage"
+                    )}
+                  >
+                    {page}
+                  </button>
+                ))}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="border-aura-border text-aura-forest hover:bg-aura-sage hover:text-aura-forest"
+              >
+                Next
+              </Button>
+            </div>
+          )}
+            </CardContent>
+          </Card>
+        </motion.div>
+      </motion.div>
 
       {/* Add/Edit Patient Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -596,7 +618,7 @@ export function Patients() {
             <Button variant="outline" onClick={() => setDeleteConfirmOpen(false)} disabled={deleting}>Cancel</Button>
             <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
               <Loader2 className={`mr-2 h-4 w-4 ${deleting ? "animate-spin" : "hidden"}`} role="status" aria-live="polite" />
-              {deleting ? "Deleting..." : "Delete"}
+              {deleting ? "Deleting…" : "Delete"}
             </Button>
           </DialogFooter>
         </DialogContent>

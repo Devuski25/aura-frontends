@@ -15,7 +15,7 @@ export function Legal() {
 
       {/* Governing law */}
       <section className="px-6 py-8">
-        <div className="mx-auto max-w-[1040px]">
+        <div className="mx-auto max-w-6xl">
           <h2 className="text-[1.55rem] font-bold tracking-tighter text-aura-text">Governing Law</h2>
           <div className="mt-4 grid gap-5 md:grid-cols-2">
             <div className="rounded-2xl border border-aura-border-soft bg-aura-bg-card p-7 shadow-aura-md transition-all duration-250 hover:shadow-aura-lg">
@@ -24,7 +24,7 @@ export function Legal() {
             </div>
             <div className="rounded-2xl border border-aura-border-soft bg-aura-bg-card p-7 shadow-aura-md transition-all duration-250 hover:shadow-aura-lg">
               <h3 className="text-lg font-bold text-aura-text">R.A. 10175 — Cybercrime Prevention Act of 2012</h3>
-              <p className="text-sm text-aura-muted">Criminalizes unauthorized access to computer systems and data, and illegal interception of data in transit. Applies to audio uploads, MQTT device traffic, and portal access.</p>
+              <p className="text-sm text-aura-muted">Criminalizes unauthorized access to computer systems and data, and illegal interception of data in transit. Applies to audio uploads, portal access, and all data transmitted to and from the system.</p>
             </div>
           </div>
         </div>
@@ -32,7 +32,7 @@ export function Legal() {
 
       {/* Consent */}
       <section className="bg-aura-bg-alt px-6 py-8">
-        <div className="mx-auto max-w-[1040px]">
+        <div className="mx-auto max-w-6xl">
           <h2 className="text-[1.55rem] font-bold tracking-tighter text-aura-text">Consent</h2>
           <p className="text-aura-muted">Every screening session — live microphone or uploaded file — is gated behind an explicit consent step before any audio is captured or processed. Declining consent stops the flow at that point; no data is retained.</p>
         </div>
@@ -40,7 +40,7 @@ export function Legal() {
 
       {/* Data Subject Rights */}
       <section className="px-6 py-8">
-        <div className="mx-auto max-w-[1040px]">
+        <div className="mx-auto max-w-6xl">
           <h2 className="text-[1.55rem] font-bold tracking-tighter text-aura-text">Data Subject Rights</h2>
           <div className="mt-4 overflow-hidden rounded-2xl border border-aura-border-soft bg-aura-bg-card shadow-aura-md">
             <table className="w-full border-collapse">
@@ -70,7 +70,7 @@ export function Legal() {
 
       {/* Thesis-stage notice */}
       <section className="bg-aura-bg-alt px-6 py-8">
-        <div className="mx-auto max-w-[1040px]">
+        <div className="mx-auto max-w-6xl">
           <div className="rounded-2xl border border-aura-border bg-gradient-to-br from-aura-bg-alt to-aura-surface-alt p-7 shadow-aura-md">
             <h3 className="text-lg font-bold text-aura-text">Thesis-Stage Disclosure</h3>
             <p className="text-sm text-aura-muted">AURA-Dx is a thesis-stage research prototype developed at the University of Rizal System — Morong Campus. It is intended to demonstrate a screening-support workflow and is not a certified diagnostic medical device. Screening results should not replace evaluation by a licensed physician.</p>

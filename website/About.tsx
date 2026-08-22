@@ -43,7 +43,7 @@ export function About() {
 
       {/* Two-tier pipeline */}
       <section className="px-6 py-8">
-        <div className="mx-auto max-w-[1040px]">
+        <div className="mx-auto max-w-6xl">
           <h2 className="text-[1.55rem] font-bold tracking-tighter text-aura-text">Two-Tier Gated Classification Pipeline</h2>
           <p className="text-aura-muted">Rather than one model guessing across every condition at once, screening runs through two purpose-built stages in sequence.</p>
           <motion.div variants={staggerContainer} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.3 }} className="mt-7 grid gap-5 md:grid-cols-2">
@@ -95,7 +95,7 @@ export function About() {
 
       {/* Signal Processing */}
       <section className="px-6 py-8">
-        <div className="mx-auto max-w-[1040px]">
+        <div className="mx-auto max-w-6xl">
           <div className="grid items-center gap-10 md:grid-cols-2">
             <div>
               <h2 className="text-[1.55rem] font-bold tracking-tighter text-aura-text">Signal Processing</h2>

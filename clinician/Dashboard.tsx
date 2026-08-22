@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
-import { motion } from "framer-motion"
+import { motion, useReducedMotion } from "framer-motion"
 import { staggerContainer, staggerItem, cardHover } from "@/lib/motion"
 import { cn } from "@/lib/utils"
 import {
@@ -26,6 +26,7 @@ import { getResultBadge } from "@clinician/lib/badge-helpers"
 import { MOCK_SCREENINGS } from "@/mocks/data"
 import { toast } from "sonner"
 import { NewPatientModal } from "@clinician/components/NewPatientModal"
+import { EmptyState } from "@clinician/components/EmptyState"
 
 interface Screening {
   id: string
@@ -47,25 +48,94 @@ interface Stats {
   copd: number
   pendingReview: number
   error: number
-  today: number
-  week: number
 }
+
+const relativeFormat = new Intl.RelativeTimeFormat(undefined, { numeric: "auto", style: "narrow" })
+const shortDateFormat = new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric" })
 
 function formatRelativeTime(dateStr: string) {
   const diffMs = Date.now() - new Date(dateStr).getTime()
   const mins = Math.floor(diffMs / 60000)
   if (mins < 1) return "just now"
-  if (mins < 60) return `${mins}m ago`
+  if (mins < 60) return relativeFormat.format(-mins, "minute")
   const hours = Math.floor(mins / 60)
-  if (hours < 24) return `${hours}h ago`
+  if (hours < 24) return relativeFormat.format(-hours, "hour")
   const days = Math.floor(hours / 24)
-  if (days < 7) return `${days}d ago`
-  return new Date(dateStr).toLocaleDateString()
+  if (days < 7) return relativeFormat.format(-days, "day")
+  return shortDateFormat.format(new Date(dateStr))
+}
+
+function dailyCounts(screenings: Screening[], days: number) {
+  const start = new Date()
+  start.setHours(0, 0, 0, 0)
+  start.setDate(start.getDate() - (days - 1))
+  const counts = Array.from({ length: days }, () => 0)
+  for (const s of screenings) {
+    const d = new Date(s.created_at)
+    d.setHours(0, 0, 0, 0)
+    const idx = Math.floor((d.getTime() - start.getTime()) / 86_400_000)
+    if (idx >= 0 && idx < days) counts[idx] += 1
+  }
+  return counts
+}
+
+function Sparkline({ counts }: { counts: number[] }) {
+  const width = 560
+  const height = 64
+  const max = Math.max(...counts, 1)
+  const stepX = counts.length > 1 ? width / (counts.length - 1) : width
+  const points = counts.map((c, i) => ({
+    x: i * stepX,
+    y: 6 + (1 - c / max) * (height - 12),
+  }))
+
+  let line = `M ${points[0].x},${points[0].y}`
+  for (let i = 0; i < points.length - 1; i++) {
+    const p0 = points[Math.max(0, i - 1)]
+    const p1 = points[i]
+    const p2 = points[i + 1]
+    const p3 = points[Math.min(points.length - 1, i + 2)]
+    const c1x = p1.x + (p2.x - p0.x) / 6
+    const c1y = p1.y + (p2.y - p0.y) / 6
+    const c2x = p2.x - (p3.x - p1.x) / 6
+    const c2y = p2.y - (p3.y - p1.y) / 6
+    line += ` C ${c1x.toFixed(1)},${c1y.toFixed(1)} ${c2x.toFixed(1)},${c2y.toFixed(1)} ${p2.x.toFixed(1)},${p2.y.toFixed(1)}`
+  }
+  const area = `${line} L ${width},${height} L 0,${height} Z`
+  const last = points[points.length - 1]
+
+  return (
+    <svg
+      viewBox={`0 0 ${width} ${height}`}
+      preserveAspectRatio="none"
+      className="h-16 w-full text-aura-brand"
+      role="img"
+      aria-label={`Screening activity over the last 14 days`}
+    >
+      <defs>
+        <linearGradient id="activity-fill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="currentColor" stopOpacity={0.22} />
+          <stop offset="100%" stopColor="currentColor" stopOpacity={0} />
+        </linearGradient>
+      </defs>
+      <path d={area} fill="url(#activity-fill)" />
+      <path
+        d={line}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={2}
+        strokeLinecap="round"
+        vectorEffect="non-scaling-stroke"
+      />
+      <circle cx={last.x} cy={last.y} r={3} fill="currentColor" />
+    </svg>
+  )
 }
 
 export function Dashboard() {
   const { user } = useAuth()
   const navigate = useNavigate()
+  const reduceMotion = useReducedMotion()
   const [screenings] = useState<Screening[]>(MOCK_SCREENINGS as unknown as Screening[])
   const lastUpdated = new Date()
 
@@ -76,12 +146,6 @@ export function Dashboard() {
   }
 
   const stats: Stats = useMemo(() => {
-    const startOfToday = new Date()
-    startOfToday.setHours(0, 0, 0, 0)
-    const startOfWeek = new Date()
-    startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay())
-    startOfWeek.setHours(0, 0, 0, 0)
-
     return {
       total: screenings.length,
       tb_positive: screenings.filter(s => s.tb_result === "TB").length,
@@ -91,10 +155,11 @@ export function Dashboard() {
       copd: screenings.filter(s => s.respiratory_result === "COPD").length,
       pendingReview: screenings.filter(s => s.status === "pending_review").length,
       error: screenings.filter(s => s.status === "error").length,
-      today: screenings.filter(s => new Date(s.created_at) >= startOfToday).length,
-      week: screenings.filter(s => new Date(s.created_at) >= startOfWeek).length,
     }
   }, [screenings])
+
+  const activity = useMemo(() => dailyCounts(screenings, 14), [screenings])
+  const activityTotal = useMemo(() => activity.reduce((a, b) => a + b, 0), [activity])
 
   // Work that is waiting on the clinician: pending review or errored runs.
   const attentionList = useMemo(
@@ -107,12 +172,13 @@ export function Dashboard() {
   const hour = new Date().getHours()
   const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening"
   const firstName = user?.full_name?.trim() ? user.full_name.split(" ")[0] : "Clinician"
-  const todayLabel = new Date().toLocaleDateString(undefined, {
+  const todayLabel = new Intl.DateTimeFormat(undefined, {
     weekday: "long",
     month: "long",
     day: "numeric",
     year: "numeric",
-  })
+  }).format(lastUpdated)
+  const timeLabel = new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit" }).format(lastUpdated)
   const roleLabel = (user?.role || "").replace("_", " ").replace(/\b\w/g, c => c.toUpperCase())
 
   const renderStatusBadge = (status: string, reviewedBy: string | null) => {
@@ -126,179 +192,126 @@ export function Dashboard() {
       title: ["Total", "Screenings"],
       value: stats.total,
       icon: FileText,
-      tone: "neutral",
+      tone: "neutral" as const,
     },
     {
       title: ["TB", "Positive"],
       value: stats.tb_positive,
       icon: AlertTriangle,
-      tone: "tb-alert",
+      tone: "tb-alert" as const,
     },
     {
       title: ["COPD", "Positive"],
       value: stats.copd,
       icon: Stethoscope,
-      tone: "alert",
+      tone: "alert" as const,
     },
     {
       title: ["Pneumonia", "Positive"],
       value: stats.pneumonia,
       icon: XCircle,
-      tone: "alert",
+      tone: "alert" as const,
     },
     {
       title: ["Healthy"],
       value: stats.healthy,
       icon: CheckCircle,
-      tone: "healthy",
+      tone: "healthy" as const,
     },
   ]
 
+  const staggerProps = reduceMotion
+    ? {}
+    : { variants: staggerContainer, initial: "hidden" as const, animate: "visible" as const }
+  const itemProps = reduceMotion
+    ? {}
+    : { variants: staggerItem, whileHover: cardHover.whileHover, whileTap: cardHover.whileTap }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-      {/* Header section with greeting, timestamp, and primary actions */}
-      <div className="border-b border-slate-200 bg-white py-6 shadow-sm">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mb-2">
-            <p className="text-sm font-medium text-slate-500">{todayLabel}</p>
+    <div className="min-h-screen bg-aura-surface">
+      <div className="w-full px-4 pb-10 pt-8 sm:px-6 lg:px-8">
+        <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="rounded-full border border-aura-line bg-white px-3 py-1 text-xs font-medium text-aura-muted">
+                {todayLabel}
+              </span>
+              <span className="rounded-full bg-aura-brand-soft px-3 py-1 text-xs font-semibold text-aura-forest">
+                {roleLabel || "Clinician"}
+              </span>
+            </div>
+            <h1 className="mt-4 font-display text-4xl font-bold tracking-tight text-aura-ink">
+              {greeting}, {firstName}
+            </h1>
+            <p className="mt-2 flex items-center gap-1.5 text-base text-aura-muted">
+              <Clock className="h-4 w-4" aria-hidden="true" />
+              Respiratory care overview · Updated {timeLabel}
+            </p>
           </div>
-          <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
-            <div className="flex-1">
-              <h1 className="text-4xl font-bold tracking-tight text-slate-900">{greeting}, {firstName}</h1>
-              <p className="mt-2 text-base text-slate-600">{roleLabel || "Clinician"} · Respiratory care overview</p>
-            </div>
-            <div className="flex flex-col items-start gap-3 md:items-end">
-              <div className="flex items-center gap-2 text-sm text-slate-500">
-                <Clock className="h-4 w-4" />
-                <span>Last updated {lastUpdated.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</span>
-              </div>
-              <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
-                {/* Primary action: Start new screening */}
-                <Button
-                  onClick={() => navigate("/dashboard/screening")}
-                  className="h-10 gap-2 rounded-lg bg-emerald-600 font-semibold text-white shadow-sm transition-all hover:bg-emerald-700 hover:shadow-md active:bg-emerald-800"
-                >
-                  <Plus className="h-4 w-4" />
-                  <span>New Screening</span>
-                </Button>
-
-                {/* Secondary action: Add patient */}
-                <Button
-                  onClick={() => setNewPatientModalOpen(true)}
-                  className="h-10 gap-2 rounded-lg border border-slate-300 bg-slate-50 font-semibold text-slate-900 shadow-sm transition-all hover:bg-slate-100 hover:shadow-md active:bg-slate-200"
-                >
-                  <Users className="h-4 w-4" />
-                  <span>Add Patient</span>
-                </Button>
-
-                {/* Utility action: Refresh */}
-                <Button
-                  onClick={handleRefresh}
-                  size="icon"
-                  className="h-10 w-10 rounded-lg border border-slate-300 bg-white shadow-sm transition-all hover:bg-slate-100 hover:shadow-md active:bg-slate-200"
-                  aria-label="Refresh dashboard"
-                  title="Refresh dashboard"
-                >
-                  <RefreshCw className="h-4 w-4 text-slate-700" />
-                </Button>
-              </div>
-            </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              onClick={() => navigate("/dashboard/screening")}
+              className="h-10 gap-2 rounded-lg bg-primary font-semibold text-white shadow-aura-sm transition-colors hover:bg-primary/90"
+            >
+              <Plus className="h-4 w-4" />
+              <span>New Screening</span>
+            </Button>
+            <Button
+              onClick={() => setNewPatientModalOpen(true)}
+              className="h-10 gap-2 rounded-lg border border-aura-border bg-white font-semibold text-aura-ink transition-colors hover:bg-aura-surface-alt"
+            >
+              <Users className="h-4 w-4" />
+              <span>Add Patient</span>
+            </Button>
+            <Button
+              onClick={handleRefresh}
+              size="icon"
+              className="h-10 w-10 rounded-lg border border-aura-border bg-white transition-colors hover:bg-aura-surface-alt"
+              aria-label="Refresh dashboard"
+              title="Refresh dashboard"
+            >
+              <RefreshCw className="h-4 w-4 text-aura-forest" />
+            </Button>
           </div>
         </div>
-      </div>
 
-      {/* Main content area */}
-      <div className="mx-auto max-w-7xl py-6 px-4 sm:px-6 lg:px-8">
-        {/* Key metrics grid - organized in a compact, scannable layout */}
-        <div className="mb-6">
-          <div className="mb-4">
-            <h2 className="font-display text-xl font-semibold text-slate-900">Key metrics</h2>
-            <p className="mt-1 text-sm text-slate-500">Overview of screening activity and results</p>
-          </div>
-
-          <motion.div
-            variants={staggerContainer}
-            initial="hidden"
-            animate="visible"
-            className="grid grid-cols-2 gap-5 md:gap-6 sm:grid-cols-3 lg:grid-cols-6"
-          >
-            {/* Actionable hero metric: the clinician's work queue */}
-            <motion.div variants={staggerItem} whileHover={cardHover.whileHover} whileTap={cardHover.whileTap}>
-              <Card className="h-full min-h-[126px] overflow-hidden rounded-xl border-y border-r border-slate-700 border-l-[3px] border-l-amber-400 bg-slate-900 shadow-none transition-transform">
-                <CardContent className="flex h-full flex-col justify-between p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <p className="font-mono text-[10px] font-medium uppercase leading-[1.4] tracking-[0.08em] text-slate-300">
-                      Needs review
-                    </p>
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-400/20 text-amber-300">
-                      <AlertTriangle className="h-4 w-4" />
-                    </span>
-                  </div>
-                  <div className="flex items-end justify-between">
-                    <p className="font-display text-4xl font-semibold leading-none text-white">{attentionList.length}</p>
-                    <span className="flex h-4 items-end gap-[2px] text-amber-300 opacity-80" aria-hidden="true">
-                      <span className="h-1 w-[2px] bg-current" />
-                      <span className="h-2 w-[2px] bg-current" />
-                      <span className="h-3 w-[2px] bg-current" />
-                      <span className="h-1.5 w-[2px] bg-current" />
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
+        <div className="mt-10">
+          <motion.div {...staggerProps} className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5 lg:gap-5">
             {cards.map((card) => {
               const Icon = card.icon
               return (
-                <motion.div key={card.title.join("-")} variants={staggerItem} whileHover={cardHover.whileHover} whileTap={cardHover.whileTap}>
+                <motion.div key={card.title.join("-")} {...itemProps}>
                   <Card className={cn(
-                    "h-full min-h-[126px] overflow-hidden rounded-xl border-y border-r border-slate-200 border-l-[3px] shadow-none transition-transform",
-                    card.tone === "neutral" && "border-l-slate-800 bg-white",
-                    card.tone === "tb-alert" && "border-l-red-700 border-y-transparent border-r-transparent bg-red-100",
-                    card.tone === "alert" && "border-l-orange-400 border-y-transparent border-r-transparent bg-orange-50",
-                    card.tone === "healthy" && "border-l-emerald-600 border-y-transparent border-r-transparent bg-emerald-50"
+                    "h-full min-h-[124px] rounded-2xl border border-transparent border-l-[3px] shadow-aura-sm",
+                    card.tone === "neutral" && "border-l-aura-forest bg-white",
+                    card.tone === "tb-alert" && "border-l-aura-coral bg-aura-coral-soft",
+                    card.tone === "alert" && "border-l-aura-warning-strong bg-aura-warning-soft",
+                    card.tone === "healthy" && "border-l-aura-mint bg-aura-mint-soft"
                   )}>
                     <CardContent className="flex h-full flex-col justify-between p-4">
                       <div className="flex items-start justify-between gap-3">
-                        <p className={cn(
-                          "font-mono text-[10px] font-medium uppercase leading-[1.4] tracking-[0.08em]",
-                          card.tone === "neutral" && "text-slate-500",
-                          card.tone === "tb-alert" && "text-red-900 font-bold",
-                          card.tone === "alert" && "text-orange-800",
-                          card.tone === "healthy" && "text-emerald-900"
-                        )}>
+                        <p className="font-mono text-[10px] font-medium uppercase leading-[1.4] tracking-[0.08em] text-aura-muted">
                           {card.title.map((line) => <span key={line} className="block">{line}</span>)}
                         </p>
                         <span className={cn(
                           "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg",
-                          card.tone === "neutral" && "bg-slate-100 text-slate-800",
-                          card.tone === "tb-alert" && "bg-red-200 text-red-800",
-                          card.tone === "alert" && "bg-orange-100 text-orange-600",
-                          card.tone === "healthy" && "bg-emerald-100 text-emerald-700"
+                          card.tone === "neutral" && "bg-aura-sage text-aura-forest",
+                          card.tone === "tb-alert" && "bg-white/80 text-aura-coral",
+                          card.tone === "alert" && "bg-white/80 text-aura-warning-strong",
+                          card.tone === "healthy" && "bg-white/80 text-aura-mint"
                         )}>
-                          <Icon className="h-4 w-4" />
+                          <Icon className="h-4 w-4" aria-hidden="true" />
                         </span>
                       </div>
-                      <div className="flex items-end justify-between">
-                        <p className={cn(
-                          "font-display text-4xl font-semibold leading-none",
-                          card.tone === "neutral" && "text-slate-900",
-                          card.tone === "tb-alert" && "text-red-900",
-                          card.tone === "alert" && "text-orange-900",
-                          card.tone === "healthy" && "text-emerald-900"
-                        )}>{card.value}</p>
-                        <span className={cn(
-                          "flex h-4 items-end gap-[2px] opacity-60",
-                          card.tone === "neutral" && "text-slate-500",
-                          card.tone === "tb-alert" && "text-red-700",
-                          card.tone === "alert" && "text-orange-600",
-                          card.tone === "healthy" && "text-emerald-600"
-                        )} aria-hidden="true">
-                          <span className="h-1 w-[2px] bg-current" />
-                          <span className="h-2 w-[2px] bg-current" />
-                          <span className="h-3 w-[2px] bg-current" />
-                          <span className="h-1.5 w-[2px] bg-current" />
-                        </span>
-                      </div>
+                      <p className={cn(
+                        "font-display text-4xl font-semibold leading-none tabular-nums",
+                        card.tone === "neutral" && "text-aura-ink",
+                        card.tone === "tb-alert" && "text-aura-coral",
+                        card.tone === "alert" && "text-aura-warning-strong",
+                        card.tone === "healthy" && "text-aura-mint"
+                      )}>
+                        {card.value}
+                      </p>
                     </CardContent>
                   </Card>
                 </motion.div>
@@ -307,74 +320,89 @@ export function Dashboard() {
           </motion.div>
         </div>
 
-        {/* Main content grid: recent screenings and attention items */}
-        <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
-          {/* Recent screenings section */}
-          <motion.div variants={staggerContainer} initial="hidden" animate="visible">
-            <motion.div variants={staggerItem}>
-              <Card className="border-slate-200 bg-white">
-                <CardHeader className="border-b border-slate-200 px-6 py-5">
+        <motion.div {...staggerProps} className="mt-6">
+          <motion.div {...{ variants: staggerItem }}>
+            <Card className="rounded-2xl border border-aura-line bg-white shadow-aura-sm">
+              <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:gap-8">
+                <div className="shrink-0">
+                  <p className="font-mono text-[10px] font-medium uppercase tracking-[0.08em] text-aura-muted">
+                    Screenings · Last 14 Days
+                  </p>
+                  <p className="mt-1 font-display text-3xl font-semibold leading-none tabular-nums text-aura-ink">
+                    {activityTotal}
+                    <span className="ml-2 align-middle text-sm font-medium text-aura-muted">this period</span>
+                  </p>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <Sparkline counts={activity} />
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </motion.div>
+
+        <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_320px]">
+          <motion.div {...staggerProps}>
+            <motion.div {...{ variants: staggerItem }}>
+              <Card className="rounded-2xl border border-aura-line bg-white shadow-aura-sm">
+                <CardHeader className="border-b border-aura-line px-6 py-5">
                   <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
                     <div>
-                      <CardTitle className="text-lg text-slate-900">Recent Screenings</CardTitle>
-                      <p className="mt-1 text-sm text-slate-600">Latest respiratory assessments from your clinic</p>
+                      <CardTitle className="text-lg text-aura-ink">Recent Screenings</CardTitle>
+                      <p className="mt-1 text-sm text-aura-muted">Latest respiratory assessments from your clinic</p>
                     </div>
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => navigate("/dashboard/screenings")}
-                      className="gap-1 text-slate-700 hover:text-slate-900"
+                      className="gap-1 text-aura-forest hover:text-aura-ink"
                     >
-                      View all <ArrowRight className="h-3.5 w-3.5" />
+                      View All <ArrowRight className="h-3.5 w-3.5" />
                     </Button>
                   </div>
                 </CardHeader>
                 <CardContent className="p-0">
                   {recentScreenings.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100">
-                        <FileText className="h-6 w-6 text-slate-400" />
-                      </div>
-                      <p className="text-sm text-slate-500">No screenings yet</p>
-                      <Button size="sm" onClick={() => navigate("/dashboard/screening")} className="gap-1.5">
-                        <Plus className="h-3.5 w-3.5" />
-                        Start your first screening
-                      </Button>
-                    </div>
+                    <EmptyState
+                      icon={FileText}
+                      title="No screenings yet"
+                      hint="Screenings you create will appear here."
+                      action={
+                        <Button size="sm" onClick={() => navigate("/dashboard/screening")} className="gap-1.5">
+                          <Plus className="h-3.5 w-3.5" />
+                          Start Your First Screening
+                        </Button>
+                      }
+                    />
                   ) : (
-                    <div className="divide-y divide-slate-200">
+                    <div className="divide-y divide-aura-line">
                       {recentScreenings.map((screening) => (
                         <Link
                           key={screening.id}
                           to={`/dashboard/screenings/${screening.id}`}
-                          className="group flex w-full items-center gap-4 px-6 py-4 text-left transition-colors hover:bg-slate-100 active:bg-slate-200 cursor-pointer"
+                          className="group flex w-full items-center gap-4 px-6 py-4 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-aura-brand hover:bg-aura-surface-alt active:bg-aura-bg-alt"
                         >
-                          {/* Patient initials avatar */}
-                          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-slate-200 font-semibold text-slate-700">
+                          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-aura-mint-soft font-semibold text-aura-forest">
                             {screening.patient_name.split(" ").map((part) => part[0]).slice(0, 2).join("")}
                           </div>
 
-                          {/* Patient info */}
                           <div className="min-w-0 flex-1">
-                            <p className="font-semibold text-slate-900 truncate">{screening.patient_name}</p>
-                            <p className="mt-1 text-xs text-slate-600">
-                              {formatRelativeTime(screening.created_at)} · {new Date(screening.created_at).toLocaleDateString()} · {screening.clinician_name || "—"}
+                            <p className="truncate font-semibold text-aura-ink">{screening.patient_name}</p>
+                            <p className="mt-1 truncate text-xs text-aura-muted">
+                              {formatRelativeTime(screening.created_at)} · {shortDateFormat.format(new Date(screening.created_at))} · {screening.clinician_name || "—"}
                             </p>
-                            {/* Badges wrap below on small screens so results stay visible */}
                             <div className="mt-2 flex flex-wrap gap-2 sm:hidden">
                               {getResultBadge(screening.tb_result, screening.respiratory_result)}
                               {renderStatusBadge(screening.status, screening.reviewed_by_name)}
                             </div>
                           </div>
 
-                          {/* Results and status badges */}
                           <div className="hidden shrink-0 items-center gap-2 sm:flex">
                             {getResultBadge(screening.tb_result, screening.respiratory_result)}
                             {renderStatusBadge(screening.status, screening.reviewed_by_name)}
                           </div>
 
-                          {/* Chevron arrow */}
-                          <ChevronRight className="h-5 w-5 shrink-0 text-slate-400 group-hover:text-slate-600" />
+                          <ChevronRight className="h-5 w-5 shrink-0 text-aura-muted transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-aura-ink" />
                         </Link>
                       ))}
                     </div>
@@ -384,61 +412,60 @@ export function Dashboard() {
             </motion.div>
           </motion.div>
 
-          {/* Needs attention sidebar - highlights items requiring clinician action */}
-          <motion.div variants={staggerItem} initial="hidden" animate="visible" className="flex flex-col">
-            <Card className="border-slate-200 bg-white">
-              <CardHeader className="border-b border-slate-200 px-6 py-5">
-                <div className="flex items-center justify-between gap-2">
-                  <CardTitle className="flex items-center gap-2 text-base text-slate-900">
-                    <AlertTriangle className="h-5 w-5 text-amber-600" />
-                    Needs Attention
-                  </CardTitle>
-                  {attentionList.length > 0 && (
-                    <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-800">
-                      {attentionList.length}
-                    </span>
+          <motion.div {...staggerProps} className="flex flex-col">
+            <motion.div {...{ variants: staggerItem }} className="flex flex-col">
+              <Card className="rounded-2xl border border-aura-line bg-white shadow-aura-sm">
+                <CardHeader className="border-b border-aura-line px-6 py-5">
+                  <div className="flex items-center justify-between gap-2">
+                    <CardTitle className="flex items-center gap-2 text-base text-aura-ink">
+                      <AlertTriangle className="h-5 w-5 text-aura-warning" aria-hidden="true" />
+                      Needs Attention
+                    </CardTitle>
+                    {attentionList.length > 0 && (
+                      <span className="rounded-full bg-aura-warning-soft px-2.5 py-0.5 text-xs font-semibold tabular-nums text-aura-warning-strong">
+                        {attentionList.length}
+                      </span>
+                    )}
+                  </div>
+                  <p className="mt-1 text-xs text-aura-muted">Cases waiting for review</p>
+                </CardHeader>
+                <CardContent className="p-0">
+                  {attentionList.length > 0 ? (
+                    <div className="relative">
+                      <div className="h-[390px] divide-y divide-aura-line overflow-y-auto overscroll-contain pb-12 scrollbar-thin">
+                        {attentionList.map((screening) => (
+                          <Link
+                            key={screening.id}
+                            to={`/dashboard/screenings/${screening.id}`}
+                            className="block w-full px-6 py-4 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-aura-brand hover:bg-aura-surface-alt active:bg-aura-bg-alt"
+                          >
+                            <p className="truncate font-semibold text-aura-ink">{screening.patient_name}</p>
+                            <div className="mt-2">
+                              <Badge variant={screening.status === "error" ? "destructive" : "warning"}>
+                                {screening.status === "error" ? "Error" : "Pending Review"}
+                              </Badge>
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
+                      <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-white via-white/90 to-transparent" />
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center gap-2 px-6 py-10 text-center">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-aura-mint-soft">
+                        <CheckCircle className="h-6 w-6 text-aura-mint" />
+                      </div>
+                      <p className="text-sm font-medium text-aura-ink">Everything Is Up To Date</p>
+                      <p className="text-xs text-aura-muted">All screenings have been reviewed</p>
+                    </div>
                   )}
-                </div>
-                <p className="mt-1 text-xs text-slate-600">Cases waiting for review</p>
-              </CardHeader>
-              <CardContent className="p-0">
-                {attentionList.length > 0 ? (
-                  <div className="relative">
-                    <div className="h-[390px] overflow-y-auto divide-y divide-slate-200 scrollbar-thin pb-12">
-                      {attentionList.map((screening) => (
-                        <Link
-                          key={screening.id}
-                          to={`/dashboard/screenings/${screening.id}`}
-                          className="w-full px-6 py-4 text-left transition-colors hover:bg-slate-100 active:bg-slate-200 cursor-pointer block"
-                        >
-                          <p className="font-semibold text-slate-900 truncate">{screening.patient_name}</p>
-                          <div className="mt-2">
-                            <Badge variant={screening.status === "error" ? "destructive" : "warning"}>
-                              {screening.status === "error" ? "Error" : "Pending Review"}
-                            </Badge>
-                          </div>
-                        </Link>
-                      ))}
-                    </div>
-                    {/* Fade-out gradient at the bottom edge */}
-                    <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-white via-white/90 to-transparent" />
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center gap-2 px-6 py-10 text-center">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-50">
-                      <CheckCircle className="h-6 w-6 text-emerald-600" />
-                    </div>
-                    <p className="text-sm font-medium text-slate-700">Everything is up to date</p>
-                    <p className="text-xs text-slate-500">All screenings have been reviewed</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </motion.div>
           </motion.div>
         </div>
       </div>
 
-      {/* Patient modal for adding new patients */}
       <NewPatientModal
         open={newPatientModalOpen}
         onOpenChange={setNewPatientModalOpen}

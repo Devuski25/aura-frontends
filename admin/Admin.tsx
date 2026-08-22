@@ -27,6 +27,8 @@ import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/comp
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { motion, useReducedMotion } from "framer-motion"
+import { staggerContainer, staggerItem } from "@/lib/motion"
 
 const userSchema = z.object({
   email: z.string().email("Invalid email"),
@@ -55,7 +57,36 @@ export function Admin() {
   const [deletingUser, setDeletingUser] = useState<any | null>(null)
   const deleting = false
   const totalScreenings = MOCK_METRICS.total_requests
+  const activeUsers = users.filter(u => u.status === "approved").length
+  const pendingApprovals = users.filter(u => u.status === "pending").length
   const [showPassword, setShowPassword] = useState(false)
+
+  const reduceMotion = useReducedMotion()
+  const staggerProps = reduceMotion
+    ? {}
+    : { variants: staggerContainer, initial: "hidden" as const, animate: "visible" as const }
+  const itemProps = reduceMotion ? {} : { variants: staggerItem }
+
+  const overviewCards = [
+    {
+      title: ["Total", "Screenings"],
+      value: totalScreenings.toLocaleString(),
+      icon: Activity,
+      tone: "neutral" as const,
+    },
+    {
+      title: ["Active", "Users"],
+      value: activeUsers,
+      icon: Users,
+      tone: "healthy" as const,
+    },
+    {
+      title: ["Pending", "Approvals"],
+      value: pendingApprovals,
+      icon: Clock,
+      tone: "alert" as const,
+    },
+  ]
 
   const form = useForm<UserFormData>({
     resolver: zodResolver(userSchema),
@@ -139,38 +170,94 @@ export function Admin() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="font-display text-2xl font-bold text-aura-ink">Users</h1>
-          <p className="text-aura-muted">Manage users and view system metrics</p>
+      <motion.div {...staggerProps} className="space-y-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="font-display text-2xl font-bold text-aura-ink">Administration</h1>
+            <p className="text-aura-muted">Manage user accounts and system activity</p>
+          </div>
+          {pendingApprovals > 0 && (
+            <span className="inline-flex items-center gap-2 self-start rounded-full bg-aura-warning-soft px-3 py-1.5 text-xs font-semibold tabular-nums text-aura-warning-strong sm:self-auto">
+              <Clock className="h-3.5 w-3.5" aria-hidden="true" />
+              {pendingApprovals} Pending Approval{pendingApprovals === 1 ? "" : "s"}
+            </span>
+          )}
         </div>
-      </div>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          {overviewCards.map((card) => {
+            const Icon = card.icon
+            return (
+              <motion.div key={card.title.join("-")} {...itemProps}>
+                <Card className={cn(
+                  "h-full min-h-[110px] rounded-2xl border border-transparent border-l-[3px] shadow-aura-sm",
+                  card.tone === "neutral" && "border-l-aura-forest bg-white",
+                  card.tone === "healthy" && "border-l-aura-mint bg-aura-mint-soft",
+                  card.tone === "alert" && "border-l-aura-warning-strong bg-aura-warning-soft"
+                )}>
+                  <CardContent className="flex h-full flex-col justify-between p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <p className="font-mono text-[10px] font-medium uppercase leading-[1.4] tracking-[0.08em] text-aura-muted">
+                        {card.title.map((line) => <span key={line} className="block">{line}</span>)}
+                      </p>
+                      <span className={cn(
+                        "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg",
+                        card.tone === "neutral" && "bg-aura-sage text-aura-forest",
+                        card.tone === "healthy" && "bg-white/80 text-aura-mint",
+                        card.tone === "alert" && "bg-white/80 text-aura-warning-strong"
+                      )}>
+                        <Icon className="h-4 w-4" aria-hidden="true" />
+                      </span>
+                    </div>
+                    <p className={cn(
+                      "font-display text-3xl font-semibold leading-none tabular-nums",
+                      card.tone === "neutral" && "text-aura-ink",
+                      card.tone === "healthy" && "text-aura-mint",
+                      card.tone === "alert" && "text-aura-warning-strong"
+                    )}>{card.value}</p>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )
+          })}
+        </div>
+      </motion.div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="users">
-            User Management
-          </TabsTrigger>
-          <TabsTrigger value="metrics">
-            System Metrics
-          </TabsTrigger>
+        <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsTrigger value="users">User Management</TabsTrigger>
+          <TabsTrigger value="metrics">Distributions</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="users" className="space-y-6">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center">
-                <div className="relative flex-1 max-w-xs">
-                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-aura-muted" />
+        <TabsContent value="users">
+          <Card className="overflow-hidden rounded-2xl border border-aura-line bg-white shadow-aura-sm">
+            <CardHeader className="border-b border-aura-line px-6 py-5">
+              <div className="flex flex-col justify-between gap-3 lg:flex-row lg:items-center">
+                <div>
+                  <CardTitle className="font-display text-lg font-semibold text-aura-ink">User Accounts</CardTitle>
+                  <p className="mt-1 text-sm tabular-nums text-aura-muted">
+                    Showing {filteredUsers.length} of {users.length} accounts
+                  </p>
+                </div>
+                <Button onClick={openCreateDialog} className="h-10 shrink-0">
+                  <UserPlusIcon className="mr-2 h-4 w-4" aria-hidden="true" />
+                  Add User
+                </Button>
+              </div>
+              <div className="mt-4 flex flex-col gap-3 md:flex-row md:items-center">
+                <div className="relative max-w-xs flex-1">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-aura-muted" aria-hidden="true" />
                   <Input
-                    placeholder="Search users..."
+                    type="search"
+                    placeholder="Name or email…"
+                    aria-label="Search users by name or email"
                     value={search}
                     onChange={e => setSearch(e.target.value)}
                     className="h-10 pl-9"
                   />
                 </div>
                 <Select value={roleFilter} onValueChange={setRoleFilter}>
-                  <SelectTrigger className="h-10 w-[180px]"><SelectValue placeholder="All Roles" /></SelectTrigger>
+                  <SelectTrigger className="h-10 w-full md:w-[170px]" aria-label="Filter by role"><SelectValue placeholder="All Roles" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All</SelectItem>
                     <SelectItem value="clinician">Clinician</SelectItem>
@@ -179,7 +266,7 @@ export function Admin() {
                   </SelectContent>
                 </Select>
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="h-10 w-[180px]"><SelectValue placeholder="All Status" /></SelectTrigger>
+                  <SelectTrigger className="h-10 w-full md:w-[170px]" aria-label="Filter by status"><SelectValue placeholder="All Status" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All</SelectItem>
                     <SelectItem value="pending">Pending</SelectItem>
@@ -188,31 +275,24 @@ export function Admin() {
                     <SelectItem value="deleted">Deleted</SelectItem>
                   </SelectContent>
                 </Select>
-                <Button onClick={openCreateDialog} className="h-10 sm:ml-3">
-                  <UserPlusIcon className="mr-2 h-4 w-4" />
-                  Add User
-                </Button>
               </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="font-display text-lg font-semibold text-aura-ink">Users</CardTitle>
-              <p className="mt-1 text-sm text-aura-muted">Showing {filteredUsers.length} of {users.length} accounts</p>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-0">
               {filteredUsers.length === 0 ? (
-                <div className="text-center py-8 text-aura-muted">
-                  No user/s found.
+                <div className="flex flex-col items-center justify-center gap-2 py-12 text-center">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-aura-sage">
+                    <Search className="h-6 w-6 text-aura-muted" aria-hidden="true" />
+                  </div>
+                  <p className="text-sm font-medium text-aura-ink">No Users Found</p>
+                  <p className="text-xs text-aura-muted">Try adjusting your search or filters</p>
                 </div>
               ) : (
-                <div>
+                <div className="overflow-x-auto">
                   <Table>
-                    <TableHeader className="sticky top-0 z-10 bg-aura-sage">
+                    <TableHeader className="bg-aura-sage">
                       <TableRow className="align-middle border-b border-aura-line hover:bg-transparent">
-                        <TableHead className="px-4 text-center font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-aura-muted">Name</TableHead>
-                        <TableHead className="px-4 text-center font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-aura-muted">Email</TableHead>
+                        <TableHead className="px-4 font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-aura-muted">Name</TableHead>
+                        <TableHead className="px-4 font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-aura-muted">Email</TableHead>
                         <TableHead className="px-4 text-center font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-aura-muted">Role</TableHead>
                         <TableHead className="px-4 text-center font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-aura-muted">Status</TableHead>
                         <TableHead className="w-36 px-4 text-center font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-aura-muted">Approve / Reject</TableHead>
@@ -221,11 +301,13 @@ export function Admin() {
                     </TableHeader>
                     <TableBody>
                       {filteredUsers.map(u => (
-                        <TableRow key={u.id} className="align-middle border-b border-aura-line hover:bg-aura-sage/60">
-                          <TableCell className="px-4 text-center align-middle">
-                            <div className="font-medium">{u.full_name}</div>
+                        <TableRow key={u.id} className="align-middle border-b border-aura-line hover:bg-aura-surface-alt">
+                          <TableCell className="px-4 align-middle">
+                            <div className="truncate font-medium">{u.full_name}</div>
                           </TableCell>
-                          <TableCell className="px-4 text-center text-sm text-aura-muted align-middle">{u.email}</TableCell>
+                          <TableCell className="px-4 align-middle">
+                            <div className="whitespace-nowrap text-sm text-aura-muted">{u.email}</div>
+                          </TableCell>
                           <TableCell className="px-4 text-center align-middle">
                             <div className="flex justify-center">
                               <Badge variant="secondary" className="border-transparent bg-aura-sage text-aura-forest">
@@ -303,93 +385,73 @@ export function Admin() {
         </TabsContent>
 
         <TabsContent value="metrics">
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>System Overview</CardTitle>
+          <div className="grid gap-6 lg:grid-cols-2">
+            <Card className="rounded-2xl border border-aura-line bg-white shadow-aura-sm">
+              <CardHeader className="px-6 py-5">
+                <CardTitle className="font-display text-lg font-semibold text-aura-ink">Role Distribution</CardTitle>
+                <p className="mt-1 text-sm text-aura-muted">Accounts across permission levels</p>
               </CardHeader>
-              <CardContent className="grid gap-4 md:grid-cols-3">
-                <div className="p-4 bg-aura-surface-alt rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <Activity className="h-6 w-6 text-primary" />
-                    <div>
-                      <p className="text-sm text-aura-muted">Total Screenings</p>
-                      <p className="text-2xl font-bold">{totalScreenings.toLocaleString()}</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="p-4 bg-aura-surface-alt rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <Users className="h-6 w-6 text-aura-accent" />
-                    <div>
-                      <p className="text-sm text-aura-muted">Active Users</p>
-                      <p className="text-2xl font-bold">{users.filter(u => u.status === "approved").length}</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="p-4 bg-aura-surface-alt rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <Clock className="h-6 w-6 text-aura-warning" />
-                    <div>
-                      <p className="text-sm text-aura-muted">Pending Approvals</p>
-                      <p className="text-2xl font-bold">{users.filter(u => u.status === "pending").length}</p>
-                    </div>
-                  </div>
+              <CardContent>
+                <div className="space-y-4">
+                  {["clinician", "admin", "super_admin"].map(role => {
+                    const count = users.filter(u => u.role === role).length
+                    const pct = (count / Math.max(users.length, 1)) * 100
+                    return (
+                      <div key={role} className="flex items-center gap-4">
+                        <Badge variant="secondary" className="w-24 shrink-0 justify-center border-transparent bg-aura-sage capitalize text-aura-forest">
+                          {role.replace("_", " ")}
+                        </Badge>
+                        <div className="h-2 flex-1 overflow-hidden rounded-full bg-aura-sage">
+                          <div
+                            className="h-full rounded-full bg-primary transition-[width] duration-300"
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                        <span className="w-16 text-right text-sm font-semibold tabular-nums text-aura-ink">
+                          {Math.round(pct)}%
+                        </span>
+                      </div>
+                    )
+                  })}
                 </div>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>User Roles Distribution</CardTitle>
+            <Card className="rounded-2xl border border-aura-line bg-white shadow-aura-sm">
+              <CardHeader className="px-6 py-5">
+                <CardTitle className="font-display text-lg font-semibold text-aura-ink">Status Distribution</CardTitle>
+                <p className="mt-1 text-sm text-aura-muted">Approval state of all accounts</p>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3">
-                  {["clinician", "admin", "super_admin"].map(role => (
-                    <div key={role} className="flex items-center gap-4">
-                      <Badge variant="secondary" className="w-24 border-transparent bg-aura-sage text-aura-forest">
-                        {role.replace("_", " ")}
-                      </Badge>
-                      <div className="flex-1 h-2 bg-aura-surface-alt rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-primary rounded-full transition-all"
-                          style={{ width: `${(users.filter(u => u.role === role).length / Math.max(users.length, 1)) * 100}%` }}
-                        />
+                <div className="space-y-4">
+                  {["approved", "pending", "rejected"].map(status => {
+                    const count = users.filter(u => u.status === status).length
+                    const pct = (count / Math.max(users.length, 1)) * 100
+                    return (
+                      <div key={status} className="flex items-center gap-4">
+                        <Badge
+                          variant={status === "approved" ? "success" : status === "pending" ? "warning" : "destructive"}
+                          className="w-24 shrink-0 justify-center capitalize"
+                        >
+                          {status}
+                        </Badge>
+                        <div className="h-2 flex-1 overflow-hidden rounded-full bg-aura-sage">
+                          <div
+                            className={cn(
+                              "h-full rounded-full transition-[width] duration-300",
+                              status === "approved" && "bg-primary",
+                              status === "pending" && "bg-aura-warning",
+                              status === "rejected" && "bg-destructive"
+                            )}
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                        <span className="w-16 text-right text-sm font-semibold tabular-nums text-aura-ink">
+                          {Math.round(pct)}%
+                        </span>
                       </div>
-                      <span className="w-12 text-right text-sm font-medium">
-                        {users.filter(u => u.role === role).length}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>User Status Distribution</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {["approved", "pending", "rejected"].map(status => (
-                    <div key={status} className="flex items-center gap-4">
-                      <Badge variant={status === "approved" ? "success" : status === "pending" ? "warning" : "destructive"} className="w-24">
-                        {status}
-                      </Badge>
-                      <div className="flex-1 h-2 bg-aura-surface-alt rounded-full overflow-hidden">
-                        <div
-                          className="h-full rounded-full transition-all"
-                          style={{
-                            width: `${(users.filter(u => u.status === status).length / Math.max(users.length, 1)) * 100}%`,
-                            backgroundColor: status === "approved" ? "var(--color-aura-accent)" : status === "pending" ? "var(--color-aura-warning)" : "var(--destructive)"
-                          }}
-                        />
-                      </div>
-                      <span className="w-12 text-right text-sm font-medium">
-                        {users.filter(u => u.status === status).length}
-                      </span>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               </CardContent>
             </Card>
@@ -428,7 +490,7 @@ export function Admin() {
                     <FormItem>
                       <FormLabel>Email</FormLabel>
                       <FormControl>
-                         <Input type="email" placeholder="you@clinic.com" autoComplete="email" disabled={!!editingUser} {...field} />
+                         <Input type="email" placeholder="you@clinic.com" autoComplete="email" autoCapitalize="none" spellCheck={false} disabled={!!editingUser} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -442,7 +504,7 @@ export function Admin() {
                       <FormLabel>Password</FormLabel>
                       <FormControl>
                         <div className="relative">
-                          <Input type={showPassword ? "text" : "password"} placeholder="••••••••" {...field} className="pr-10" />
+                          <Input type={showPassword ? "text" : "password"} placeholder="••••••••" autoComplete="new-password" {...field} className="pr-10" />
                           <button
                             type="button"
                             onClick={() => setShowPassword(!showPassword)}
@@ -520,7 +582,7 @@ export function Admin() {
 
               <DialogFooter>
                 <Button type="submit" disabled={form.formState.isSubmitting}>
-                  {form.formState.isSubmitting ? "Saving…" : editingUser ? "Update" : "Create"}
+                  {form.formState.isSubmitting ? "Saving…" : editingUser ? "Save Changes" : "Create User"}
                 </Button>
               </DialogFooter>
             </form>

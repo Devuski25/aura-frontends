@@ -151,7 +151,7 @@ export function Sidebar({
             : { x: drawerSpring, width: spring.snappy }
         }
         className={cn(
-          "flex flex-col border-l border-[#264238] bg-gradient-to-b from-[#132420] to-[#264238] text-[#eaf2ee]",
+          "flex flex-col border-l border-[#264238] bg-gradient-to-b from-[#132420] to-[#264238] text-[#eaf2ee] print:hidden",
           isMobile
             ? "fixed inset-y-0 right-0 z-50 shadow-[-12px_0_40px_rgba(0,0,0,0.15)]"
             : "sticky top-0 h-screen shrink-0"

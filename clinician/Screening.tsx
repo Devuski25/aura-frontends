@@ -1,25 +1,86 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { Fragment, useState, useRef, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import { scaleIn } from "@/lib/motion"
-import { Loader2, Mic, MicOff, FileAudio, Trash2, Upload, X, CheckCircle, AlertCircle, ChevronRight, Settings, Plus, AlertTriangle } from "lucide-react"
+import { Loader2, Mic, MicOff, FileAudio, Trash2, Upload, X, CheckCircle, AlertCircle, ChevronRight, Settings, Plus, AlertTriangle, Search } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
+import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
-import { MOCK_PATIENTS, randomMockResult } from "@/mocks/data"
+import { MOCK_PATIENTS, MOCK_SCREENINGS, randomMockResult } from "@/mocks/data"
 import { NewPatientModal } from "@clinician/components/NewPatientModal"
 import { CameraCoughDetection, type CameraCoughSummary } from "@clinician/components/CameraCoughDetection"
+
+const dobDateFormat = new Intl.DateTimeFormat(undefined, { dateStyle: "medium" })
+
+const initialsOf = (name: string) =>
+  name
+    .split(" ")
+    .map(part => part.charAt(0))
+    .slice(0, 2)
+    .join("")
+    .toUpperCase()
+
+const TODAY = new Date()
+
+const ageOf = (dateOfBirth: string) => {
+  const birth = new Date(dateOfBirth)
+  let age = TODAY.getFullYear() - birth.getFullYear()
+  const monthDelta = TODAY.getMonth() - birth.getMonth()
+  if (monthDelta < 0 || (monthDelta === 0 && TODAY.getDate() < birth.getDate())) age--
+  return age
+}
+
+// Latest screening per patient (MOCK_SCREENINGS is ordered newest-first).
+const LAST_SCREENING_BY_PATIENT = new Map<string, (typeof MOCK_SCREENINGS)[number]>()
+for (const screening of MOCK_SCREENINGS) {
+  if (!LAST_SCREENING_BY_PATIENT.has(screening.patient_id)) {
+    LAST_SCREENING_BY_PATIENT.set(screening.patient_id, screening)
+  }
+}
+
+const STATUS_BADGES = {
+  completed: { label: "Completed", className: "bg-green-100 text-green-700" },
+  urgent: { label: "Urgent", className: "bg-red-100 text-red-700" },
+  awaiting_review: { label: "Awaiting Review", className: "bg-yellow-100 text-yellow-800" },
+  retake_needed: { label: "Retake Needed", className: "bg-red-100 text-red-700" },
+  none: { label: "New", className: "bg-gray-100 text-gray-600" },
+} as const
+
+const statusBadgeFor = (patientId: string) => {
+  const screening = LAST_SCREENING_BY_PATIENT.get(patientId)
+  if (!screening) return STATUS_BADGES.none
+  if (screening.status === "error") return STATUS_BADGES.retake_needed
+  if (screening.tb_result === "TB") return STATUS_BADGES.urgent
+  if (screening.status === "pending_review") return STATUS_BADGES.awaiting_review
+  return STATUS_BADGES.completed
+}
+
+const PATIENT_GRID =
+  "grid grid-cols-[32px_minmax(0,1fr)_auto] items-center gap-x-3 px-3 py-2 sm:grid-cols-[32px_minmax(0,1.1fr)_minmax(0,1.5fr)_122px_76px]"
 
 export function Screening() {
   const navigate = useNavigate()
   const [step, setStep] = useState<"patient" | "record" | "result">("patient")
   const [selectedPatient, setSelectedPatient] = useState<{ id: string; name: string } | null>(null)
-  const patients = MOCK_PATIENTS.map(p => ({ id: p.id, full_name: p.full_name, date_of_birth: p.date_of_birth, gender: p.gender }))
+  const [patientSearch, setPatientSearch] = useState("")
+  const patients = MOCK_PATIENTS.map(p => ({
+    id: p.id,
+    name: p.full_name,
+    patientId: p.id.toUpperCase(),
+    dob: dobDateFormat.format(new Date(p.date_of_birth)),
+    age: ageOf(p.date_of_birth),
+    gender: p.gender,
+  }))
+  const query = patientSearch.trim().toLowerCase()
+  const visiblePatients = query
+    ? patients.filter(p => p.name.toLowerCase().includes(query))
+    : patients
 
   // Recording state
   const [recording, setRecording] = useState(false)
@@ -315,89 +376,186 @@ export function Screening() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="mx-auto w-full max-w-3xl space-y-6">
       {/* Progress Steps */}
-      <div className="flex items-center justify-center gap-2 sm:gap-4">
+      <nav aria-label="Screening progress" className="flex items-start justify-center">
         {["patient", "record", "result"].map((s, i) => {
           const stepIndex = ["patient", "record", "result"].indexOf(step)
           const isComplete = stepIndex > i
+          const isActive = step === s
           return (
-          <div key={s} className="flex flex-col items-center">
-            <div
-              className={cn(
-                "w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-colors",
-                step === s ? "bg-aura-accent text-white" :
-                isComplete ? "bg-aura-accent-dark text-white" :
-                "bg-aura-surface-alt text-aura-muted"
-              )}
-            >
-              {step === s ? (
-                <span
-                  className="flex h-5 w-5 items-center justify-center"
-                  role="status"
-                  aria-live="polite"
-                  aria-label={`Step ${i + 1}: ${s} in progress`}
-                >
-                  <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-white" />
-                </span>
-              ) : isComplete ? (
-                <CheckCircle className="h-5 w-5" />
-              ) : (
-                i + 1
-              )}
+          <Fragment key={s}>
+            {i > 0 && (
+              <span
+                aria-hidden="true"
+                className={cn(
+                  "mt-[17px] h-[2px] w-10 rounded-full transition-colors sm:w-16",
+                  stepIndex >= i ? "bg-aura-accent-dark" : "bg-aura-line"
+                )}
+              />
+            )}
+            <div className="flex w-16 flex-col items-center" aria-current={isActive ? "step" : undefined}>
+              <div
+                className={cn(
+                  "flex h-9 w-9 items-center justify-center rounded-full border-2 text-sm font-semibold transition-colors",
+                  isActive && "border-[#0E7A55] bg-[#0E7A55] text-white ring-4 ring-[#0E7A55]/15",
+                  isComplete && "border-aura-accent-dark bg-aura-accent-dark text-white",
+                  !isActive && !isComplete && "border-aura-line bg-white text-gray-600"
+                )}
+              >
+                {isComplete ? <CheckCircle className="h-5 w-5" aria-hidden="true" /> : i + 1}
+              </div>
+              <span className={cn("mt-1.5 text-xs font-medium", isActive ? "font-semibold text-aura-forest" : "text-gray-600")}>
+                {s.charAt(0).toUpperCase() + s.slice(1)}
+              </span>
             </div>
-            <span className={cn("mt-1 text-sm font-medium", step === s ? "text-aura-accent" : "text-aura-muted")}>
-              {s.charAt(0).toUpperCase() + s.slice(1)}
-            </span>
-          </div>
+          </Fragment>
           )
         })}
-      </div>
+      </nav>
 
       {/* Step 1: Patient Selection */}
       <AnimatePresence mode="wait">
         {step === "patient" && (
           <motion.div key="patient" variants={scaleIn} initial="hidden" animate="visible" exit="exit">
-            <Card>
-              <CardHeader>
-                <CardTitle>Select Patient</CardTitle>
-            <CardDescription>Choose an existing patient or create a new screening</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {patients.length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-aura-muted mb-4">No patients found. Create a screening for a new patient.</p>
-                <Button onClick={() => setNewPatientModalOpen(true)} size="lg">
-                  <Plus className="mr-2 h-4 w-4" />
-                  New Patient Screening
-                </Button>
+            <Card className="overflow-hidden">
+              {/* Header: title left, search right */}
+              <div className="flex flex-col gap-3 border-b border-aura-line px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+                <div>
+                  <CardTitle className="text-xl">Select Patient</CardTitle>
+                  <CardDescription className="mt-1">Choose an existing patient or create a new screening</CardDescription>
+                </div>
+                <div className="relative w-full shrink-0 sm:w-72">
+                  <Search aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
+                  <Input
+                    type="search"
+                    value={patientSearch}
+                    onChange={e => setPatientSearch(e.target.value)}
+                    placeholder="Search patients by name…"
+                    aria-label="Search patients by name"
+                    autoComplete="off"
+                    className="h-9 rounded-lg border-aura-border pl-9 text-sm"
+                  />
+                </div>
               </div>
-            ) : (
-              <div className="space-y-3">
-                {patients.map(patient => (
-                  <Button
-                    key={patient.id}
-                    variant="outline"
-                    className="w-full justify-start gap-4"
-                    onClick={() => handlePatientSelect({ id: patient.id, name: patient.full_name })}
-                  >
-                    <div className="flex-1 text-left">
-                      <div className="font-medium">{patient.full_name}</div>
-                      <div className="text-sm text-aura-muted">
-                        DOB: {new Date(patient.date_of_birth).toLocaleDateString()} - {patient.gender}
+
+              {patients.length === 0 ? (
+                <CardContent>
+                  <div className="py-8 text-center">
+                    <p className="text-aura-muted mb-4">No patients found. Create a screening for a new patient.</p>
+                    <Button onClick={() => setNewPatientModalOpen(true)} size="lg">
+                      <Plus className="mr-2 h-4 w-4" />
+                      New Patient Screening
+                    </Button>
+                  </div>
+                </CardContent>
+              ) : (
+                <>
+                  <CardContent className="p-0 pb-3">
+                    {visiblePatients.length === 0 && (
+                      <p role="status" className="px-4 py-10 text-center text-sm text-aura-muted">
+                        No patients match &ldquo;{patientSearch}&rdquo;.
+                      </p>
+                    )}
+                    {visiblePatients.length > 0 && (
+                      <div>
+                        {/* Column labels (decorative; rows are self-describing buttons) */}
+                        <div
+                          aria-hidden="true"
+                          className={cn(PATIENT_GRID, "hidden border-b border-aura-line bg-gray-50 pb-2 pt-3 text-xs font-medium text-gray-500 sm:grid")}
+                        >
+                          <span />
+                          <span>Patient</span>
+                          <span>Details</span>
+                          <span>Status</span>
+                          <span className="text-right">Action</span>
+                        </div>
+                        {visiblePatients.map(patient => {
+                          const isSelected = selectedPatient?.id === patient.id
+                          const badge = statusBadgeFor(patient.id)
+                          return (
+                            <button
+                              key={patient.id}
+                              type="button"
+                              aria-label={`Start screening for ${patient.name}`}
+                              aria-pressed={isSelected}
+                              onClick={() => handlePatientSelect({ id: patient.id, name: patient.name })}
+                              className={cn(
+                                PATIENT_GRID,
+                                "group w-full border-b border-aura-line text-left transition-colors last:border-b-0",
+                                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
+                                "active:scale-[0.995]",
+                                isSelected
+                                  ? "bg-green-50 ring-1 ring-inset ring-green-600"
+                                  : "bg-white hover:bg-gray-50"
+                              )}
+                            >
+                              <span
+                                aria-hidden="true"
+                                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-aura-mint-soft text-xs font-semibold text-aura-forest"
+                              >
+                                {initialsOf(patient.name)}
+                              </span>
+                              <span className="flex min-w-0 flex-col gap-0.5">
+                                <span className="flex min-w-0 items-center gap-2">
+                                  <span className="truncate text-sm font-medium">{patient.name}</span>
+                                  {isSelected && (
+                                    <span className="inline-flex shrink-0 items-center rounded-full border border-green-600 px-1.5 text-[10px] font-semibold leading-4 text-green-700">
+                                      SELECTED
+                                    </span>
+                                  )}
+                                </span>
+                                <span className="truncate text-xs text-gray-500">{patient.patientId}</span>
+                              </span>
+                              <span className="hidden min-w-0 truncate text-xs text-gray-500 sm:block">
+                                {patient.dob} &middot; {patient.age} yrs &middot;{" "}
+                                <span className="capitalize">{patient.gender}</span>
+                              </span>
+                              <span className="hidden sm:block">
+                                <span
+                                  className={cn(
+                                    "inline-flex items-center whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-medium",
+                                    badge.className
+                                  )}
+                                >
+                                  {badge.label}
+                                </span>
+                              </span>
+                              <span className="flex items-center justify-end gap-1.5">
+                                <span
+                                  className={cn(
+                                    "hidden text-xs font-semibold lg:inline",
+                                    isSelected ? "text-green-700" : "text-gray-500 group-hover:text-green-700"
+                                  )}
+                                >
+                                  {isSelected ? "Selected" : "Select"}
+                                </span>
+                                <ChevronRight
+                                  aria-hidden="true"
+                                  className="h-4 w-4 shrink-0 text-gray-400 transition-transform group-hover:translate-x-0.5"
+                                />
+                              </span>
+                            </button>
+                          )
+                        })}
                       </div>
-                    </div>
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                ))}
-                <Button variant="outline" onClick={() => setNewPatientModalOpen(true)} className="w-full">
-                  <Plus className="mr-2 h-4 w-4" />
-                  New Patient
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                    )}
+                  </CardContent>
+
+                  {/* Pinned footer action */}
+                  <div className="border-t border-aura-line p-3">
+                    <button
+                      type="button"
+                      onClick={() => setNewPatientModalOpen(true)}
+                      className="flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-green-600 bg-transparent px-3 py-2 text-sm font-semibold text-green-700 transition-colors hover:bg-green-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:scale-[0.99]"
+                    >
+                      <Plus className="h-4 w-4" aria-hidden="true" />
+                      New Patient
+                    </button>
+                  </div>
+                </>
+              )}
+            </Card>
       </motion.div>
     )}
   </AnimatePresence>

@@ -65,7 +65,7 @@ export function Team() {
 
       {/* Team grid */}
       <section className="px-6 py-14">
-        <div className="mx-auto max-w-[1040px]">
+        <div className="mx-auto max-w-6xl">
           <div className="mb-6 text-center">
             <h2 className="text-[clamp(1.6rem,2.5vw,2.2rem)] font-extrabold leading-tight tracking-[-0.01em] text-aura-text">
               Project Team

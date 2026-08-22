@@ -222,3 +222,17 @@ html,
 body {
   overflow-x: clip;
 }
+
+/* Print: clean clinical report output (Download PDF uses window.print) */
+@media print {
+  @page {
+    margin: 14mm;
+  }
+
+  body {
+    background: #ffffff !important;
+    /* Keep brand colors (status banner, badges, bars) visible on paper */
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
