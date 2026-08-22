@@ -85,11 +85,11 @@ export function PublicLayout() {
         </motion.main>
       </AnimatePresence>
 
-      <footer className="mt-3 border-t border-aura-border bg-white px-6 py-10 pb-7">
+      <footer className="mt-3 bg-gradient-to-b from-[#2f6b54] to-[#1b4535] px-6 py-10 pb-7 text-white">
         <div className="mx-auto max-w-6xl">
-          <div className="flex flex-wrap items-start justify-between gap-8 text-sm text-aura-muted">
+          <div className="flex flex-wrap items-start justify-between gap-8 text-sm text-white/70">
             <div className="max-w-md">
-              <strong className="text-base text-aura-text">AURA-Dx</strong>
+              <strong className="text-base text-white">AURA-Dx</strong>
               <br />
               Acoustic Unit for Respiratory Analysis — web-based AI system for early detection of respiratory diseases via cough
               sound analysis.
@@ -102,7 +102,7 @@ export function PublicLayout() {
                   <li key={item.path}>
                     <Link
                       to={item.path}
-                      className="text-sm font-medium text-aura-muted no-underline transition-colors hover:text-aura-accent-dark"
+                      className="text-sm font-medium text-white/75 no-underline transition-colors hover:text-white"
                     >
                       {item.label}
                     </Link>
@@ -111,7 +111,7 @@ export function PublicLayout() {
               </ul>
             </nav>
           </div>
-          <div className="mt-6 border-t border-aura-border-soft pt-4 text-xs text-aura-muted">
+          <div className="mt-6 border-t border-white/15 pt-4 text-xs text-white/60">
             For research and clinical-support use only. Not a substitute for professional medical diagnosis.
           </div>
         </div>

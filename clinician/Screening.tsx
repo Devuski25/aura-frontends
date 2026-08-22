@@ -4,13 +4,14 @@ import { Fragment, useState, useRef, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import { scaleIn } from "@/lib/motion"
-import { Loader2, Mic, MicOff, FileAudio, Trash2, Upload, X, CheckCircle, AlertCircle, ChevronRight, Settings, Plus, AlertTriangle, Search } from "lucide-react"
+import { Loader2, Mic, MicOff, FileAudio, Trash2, Upload, X, CheckCircle, AlertCircle, ArrowRight, ChevronDown, ChevronRight, Settings, Plus, AlertTriangle, Search } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
 import { MOCK_PATIENTS, MOCK_SCREENINGS, randomMockResult } from "@/mocks/data"
 import { NewPatientModal } from "@clinician/components/NewPatientModal"
@@ -69,6 +70,7 @@ export function Screening() {
   const [step, setStep] = useState<"patient" | "record" | "result">("patient")
   const [selectedPatient, setSelectedPatient] = useState<{ id: string; name: string } | null>(null)
   const [patientSearch, setPatientSearch] = useState("")
+  const [isListOpen, setIsListOpen] = useState(false)
   const patients = MOCK_PATIENTS.map(p => ({
     id: p.id,
     name: p.full_name,
@@ -388,11 +390,22 @@ export function Screening() {
             {i > 0 && (
               <span
                 aria-hidden="true"
-                className={cn(
-                  "mt-[17px] h-[2px] w-10 rounded-full transition-colors sm:w-16",
-                  stepIndex >= i ? "bg-aura-accent-dark" : "bg-aura-line"
-                )}
-              />
+                className="mt-[9px] flex h-5 w-14 items-center sm:w-24"
+              >
+                <span
+                  className={cn(
+                    "h-[2px] flex-1 rounded-full",
+                    stepIndex >= i ? "bg-aura-accent-dark" : "bg-gray-300"
+                  )}
+                />
+                <ArrowRight
+                  className={cn(
+                    "ml-0.5 h-5 w-5 shrink-0",
+                    stepIndex >= i ? "text-aura-accent-dark" : "text-gray-400"
+                  )}
+                  strokeWidth={2.5}
+                />
+              </span>
             )}
             <div className="flex w-16 flex-col items-center" aria-current={isActive ? "step" : undefined}>
               <div
@@ -425,17 +438,54 @@ export function Screening() {
                   <CardTitle className="text-xl">Select Patient</CardTitle>
                   <CardDescription className="mt-1">Choose an existing patient or create a new screening</CardDescription>
                 </div>
-                <div className="relative w-full shrink-0 sm:w-72">
+                <div className="flex w-full shrink-0 flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+                  {patients.length > 0 && (
+                    <Select
+                      onValueChange={value => {
+                        const match = patients.find(p => p.id === value)
+                        if (match) handlePatientSelect({ id: match.id, name: match.name })
+                      }}
+                    >
+                      <SelectTrigger aria-label="Quick select a patient" className="h-9 w-full rounded-lg border-aura-border text-sm sm:w-60">
+                        <SelectValue placeholder="Quick select patient…" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {patients.map(p => (
+                          <SelectItem key={p.id} value={p.id}>
+                            <span className="font-medium">{p.name}</span>
+                            <span className="text-xs text-gray-500">&nbsp;· {p.patientId}</span>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                  <div className="relative w-full sm:w-72">
                   <Search aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
                   <Input
                     type="search"
                     value={patientSearch}
                     onChange={e => setPatientSearch(e.target.value)}
+                    onFocus={() => setIsListOpen(true)}
+                    onClick={() => setIsListOpen(true)}
                     placeholder="Search patients by name…"
                     aria-label="Search patients by name"
+                    aria-expanded={isListOpen}
                     autoComplete="off"
-                    className="h-9 rounded-lg border-aura-border pl-9 text-sm"
-                  />
+                    className="h-9 rounded-lg border-aura-border pl-9 pr-8 text-sm"
+                    />
+                  <button
+                    type="button"
+                    onClick={() => setIsListOpen(v => !v)}
+                    aria-expanded={isListOpen}
+                    aria-label={isListOpen ? "Hide patient list" : "Show patient list"}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 text-gray-500 transition-colors hover:text-aura-forest focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <ChevronDown
+                      aria-hidden="true"
+                      className={cn("h-4 w-4 transition-transform duration-200", isListOpen && "rotate-180")}
+                    />
+                  </button>
+                  </div>
                 </div>
               </div>
 
@@ -451,7 +501,17 @@ export function Screening() {
                 </CardContent>
               ) : (
                 <>
-                  <CardContent className="p-0 pb-3">
+                  <AnimatePresence initial={false}>
+                    {isListOpen && (
+                      <motion.div
+                        key="patient-list"
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.25, ease: "easeInOut" }}
+                        className="overflow-hidden"
+                      >
+                        <CardContent className="p-0 pb-3">
                     {visiblePatients.length === 0 && (
                       <p role="status" className="px-4 py-10 text-center text-sm text-aura-muted">
                         No patients match &ldquo;{patientSearch}&rdquo;.
@@ -540,7 +600,10 @@ export function Screening() {
                         })}
                       </div>
                     )}
-                  </CardContent>
+                        </CardContent>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
 
                   {/* Pinned footer action */}
                   <div className="border-t border-aura-line p-3">

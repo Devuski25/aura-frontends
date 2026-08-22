@@ -6,42 +6,15 @@ import {
   ArrowDown,
   ArrowRight,
   Check,
-  ChevronDown,
   ClipboardCheck,
   FileAudio,
-  HeartPulse,
   Mic,
   ShieldCheck,
   Stethoscope,
-  Waves,
-  Wind,
   type LucideIcon,
 } from "lucide-react"
 import { fadeUp, staggerContainer, staggerItem } from "@/lib/motion"
 import WebdesHero from "@website/assets/webdes.png"
-
-/* Decorative animated waveform strip (reuses the auth-page bar keyframes) */
-const WAVE_HEIGHTS = [
-  12, 22, 16, 30, 24, 38, 18, 28, 34, 15, 25, 36, 20, 30, 14, 26, 32, 17, 29, 23, 35, 19, 27, 13, 31, 21, 33, 16, 28, 24, 36, 18,
-]
-
-function WaveDivider() {
-  return (
-    <div aria-hidden="true" className="flex h-12 items-end justify-center gap-[3px]">
-      {WAVE_HEIGHTS.map((height, i) => (
-        <span
-          key={i}
-          className="aura-wave-bar w-[3px] origin-bottom rounded-full bg-gradient-to-t from-aura-accent-light/60 to-aura-accent-dark/80"
-          style={{
-            height: `${height}px`,
-            animationDelay: `${(i % 8) * 0.12}s`,
-            animationDuration: `${1.5 + (i % 5) * 0.2}s`,
-          }}
-        />
-      ))}
-    </div>
-  )
-}
 
 /* Pipeline flow map */
 function FlowNode({ icon: Icon, title, sub }: { icon: LucideIcon; title: string; sub: string }) {
@@ -67,13 +40,6 @@ function FlowArrow() {
     </div>
   )
 }
-
-const CONDITIONS: { icon: LucideIcon; name: string; chip: string; desc: string }[] = [
-  { icon: HeartPulse, name: "Healthy", chip: "bg-green-100 text-green-700", desc: "Clear acoustic patterns — no signs of respiratory abnormality." },
-  { icon: Wind, name: "COPD", chip: "bg-amber-100 text-amber-800", desc: "Indicators such as wheezing and prolonged expiration patterns." },
-  { icon: Waves, name: "Pneumonia", chip: "bg-orange-100 text-orange-800", desc: "Patterns consistent with lung inflammation or infection." },
-  { icon: AlertTriangle, name: "Tuberculosis", chip: "bg-red-100 text-red-700", desc: "Acoustic markers flagged immediately by the Tier 1 gatekeeper." },
-]
 
 const STEPS: { icon: LucideIcon; title: string; desc: string }[] = [
   { icon: ClipboardCheck, title: "Give consent", desc: "Nothing records until explicit, informed consent is given." },
@@ -132,18 +98,6 @@ export function Home() {
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Link>
             </div>
-            <div className="mt-10 flex flex-wrap items-center gap-x-10 gap-y-4 border-t border-aura-border-soft pt-6">
-              {[
-                { value: "4", label: "conditions screened" },
-                { value: "2", label: "gated AI models" },
-                { value: "<60s", label: "per screening" },
-              ].map((stat) => (
-                <div key={stat.label} className="flex items-baseline gap-2">
-                  <span className="text-xl font-bold tabular-nums tracking-tight text-aura-text">{stat.value}</span>
-                  <span className="text-sm text-aura-muted">{stat.label}</span>
-                </div>
-              ))}
-            </div>
           </div>
           <div className="overflow-visible">
             <motion.div
@@ -158,7 +112,6 @@ export function Home() {
             </motion.div>
           </div>
         </div>
-        <WaveDivider />
       </section>
 
       {/* Pipeline */}
@@ -216,39 +169,8 @@ export function Home() {
         </div>
       </section>
 
-      {/* Conditions */}
-      <section className="py-12">
-        <div className="mx-auto max-w-6xl px-6">
-          <h2 className="m-0 text-[1.55rem] font-bold tracking-tighter text-aura-text">What We Screen For</h2>
-          <p className="mt-1 text-aura-muted">
-            Four respiratory classes in one pass — screening support, not a medical diagnosis. Tap a class to see its markers.
-          </p>
-          <motion.div variants={staggerContainer} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }} className="mt-7 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {CONDITIONS.map((condition) => (
-              <motion.div key={condition.name} variants={staggerItem} className="transition-transform duration-300 hover:-translate-y-1">
-                <details className="group h-full rounded-2xl border border-aura-border-soft bg-aura-bg-card shadow-aura-md transition-shadow duration-300 hover:shadow-lg">
-                  <summary className="flex cursor-pointer list-none items-center gap-3 rounded-2xl p-6 text-base font-bold text-aura-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-aura-accent-dark [&::-webkit-details-marker]:hidden">
-                    <span aria-hidden="true" className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${condition.chip}`}>
-                      <condition.icon className="h-5 w-5" />
-                    </span>
-                    {condition.name}
-                    <ChevronDown
-                      aria-hidden="true"
-                      className="ml-auto h-4 w-4 shrink-0 text-aura-muted transition-transform duration-300 group-open:rotate-180"
-                    />
-                  </summary>
-                  <div className="grid transition-[grid-template-rows] duration-300 ease-out [grid-template-rows:0fr] group-open:[grid-template-rows:1fr]">
-                    <p className="m-0 overflow-hidden px-6 pb-6 text-sm text-aura-muted">{condition.desc}</p>
-                  </div>
-                </details>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
       {/* Steps */}
-      <section className="bg-aura-bg-alt py-12">
+      <section className="py-12">
         <div className="mx-auto max-w-6xl px-6">
           <h2 className="m-0 text-[1.55rem] font-bold tracking-tighter text-aura-text">Getting Screened Is Simple</h2>
           <p className="mt-1 text-aura-muted">Three steps, under a minute of your time.</p>
@@ -273,7 +195,7 @@ export function Home() {
       </section>
 
       {/* Built for Clinic */}
-      <section className="py-12">
+      <section className="bg-aura-bg-alt py-12">
         <div className="mx-auto max-w-6xl px-6">
           <div className="grid items-start gap-9 md:grid-cols-[1fr_1.05fr]">
             <div>
@@ -317,31 +239,6 @@ export function Home() {
                 </details>
               </motion.div>
             ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* CTA band */}
-      <section className="bg-aura-bg-alt py-12">
-        <div className="mx-auto max-w-6xl px-6">
-          <motion.div
-            variants={fadeUp}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            className="rounded-3xl bg-aura-forest px-6 py-12 text-center shadow-lg"
-          >
-            <h2 className="m-0 text-2xl font-bold tracking-tight text-white md:text-[1.75rem]">Ready to screen?</h2>
-            <p className="mx-auto mt-2 max-w-md text-sm text-[#d7e7df]">
-              Log in to start a consent-first screening session — results in under a minute.
-            </p>
-            <Link
-              to="/login"
-              className="mt-6 inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-aura-forest shadow-md no-underline transition-[background-color,box-shadow,transform] duration-150 hover:bg-[#eaf6f0] hover:shadow-lg active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-aura-forest"
-            >
-              Open the System
-              <ArrowRight className="h-4 w-4" aria-hidden="true" />
-            </Link>
           </motion.div>
         </div>
       </section>

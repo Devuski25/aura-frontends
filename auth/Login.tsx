@@ -19,7 +19,6 @@ import {
 } from "@/components/ui/dialog"
 import { useAuth } from "@/hooks/useAuth"
 import { GoogleIcon } from "@auth/components/GoogleIcon"
-import { WaveformBackground } from "@auth/components/WaveformBackground"
 
 export function Login() {
   const { signIn, confirmLogin, signInWithOAuth } = useAuth()
@@ -84,8 +83,7 @@ export function Login() {
       variants={pageVariants}
       initial="initial"
       animate="animate"
-      className="relative min-h-screen overflow-hidden flex items-center justify-center bg-aura-bg px-4 py-12">
-      <WaveformBackground />
+      className="relative min-h-screen overflow-hidden flex items-center justify-center bg-[radial-gradient(ellipse_at_center,#9edfc1_0%,#b5e7d0_40%,#dcf2e8_74%,#effaf4_100%)] px-4 py-12">
       <div className="relative z-10 w-full max-w-md">
         <Link
           to="/"
@@ -95,7 +93,7 @@ export function Login() {
         >
           <ArrowLeft className="h-5 w-5" />
         </Link>
-        <Card className="w-full rounded-xl border-white/40 bg-white/70 shadow-lg backdrop-blur-md">
+        <Card className="w-full rounded-xl border-aura-border bg-white/70 shadow-lg backdrop-blur-md">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold text-gray-900">Welcome back</CardTitle>
           <CardDescription className="text-gray-700">Sign in to your AURA-Dx account</CardDescription>

@@ -192,28 +192,12 @@
   animation: aura-detect-burst 0.7s ease-out forwards;
 }
 
-/* Auth pages — ambient audio waveform texture (see auth/components/WaveformBackground.tsx) */
-@keyframes aura-wave-pulse {
-  0%, 100% { transform: scaleY(0.35); }
-  50%      { transform: scaleY(1); }
-}
-.aura-wave-bar {
-  animation-name: aura-wave-pulse;
-  animation-timing-function: ease-in-out;
-  animation-iteration-count: infinite;
-}
-
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
-  }
-
-  /* Auth waveform: freeze to a static texture instead of pulsing */
-  .aura-wave-bar {
-    animation: none !important;
   }
 }
 

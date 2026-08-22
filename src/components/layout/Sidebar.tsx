@@ -7,10 +7,10 @@ import {
   FileText,
   LayoutDashboard,
   LogOut,
-  Menu,
   Mic,
   UserCog,
   Users,
+  X,
 } from "lucide-react"
 import { Logo } from "@/components/layout/Logo"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -151,13 +151,13 @@ export function Sidebar({
             : { x: drawerSpring, width: spring.snappy }
         }
         className={cn(
-          "flex flex-col border-l border-[#264238] bg-gradient-to-b from-[#132420] to-[#264238] text-[#eaf2ee] print:hidden",
+          "flex flex-col border-l border-[#16382b] bg-gradient-to-b from-[#2f6b54] to-[#1b4535] text-white print:hidden",
           isMobile
             ? "fixed inset-y-0 right-0 z-50 shadow-[-12px_0_40px_rgba(0,0,0,0.15)]"
             : "sticky top-0 h-screen shrink-0"
         )}
       >
-        <div className="flex h-16 shrink-0 items-center justify-between border-b border-white/10 px-4">
+        <div className="flex h-16 shrink-0 items-center justify-between border-b border-white/15 px-4">
           {showLabels ? (
             <Logo withSubtitle inverse />
           ) : (
@@ -167,13 +167,13 @@ export function Sidebar({
             whileTap={{ scale: 0.88 }}
             transition={{ type: "spring", stiffness: 500, damping: 20 }}
             className={cn(
-              "rounded-md p-2 text-[#eaf2ee] hover:bg-white/10",
+              "rounded-md p-2 text-white hover:bg-black/10",
               !isMobile && "hidden"
             )}
             onClick={onClose}
             aria-label="Close sidebar"
           >
-            <Menu className="h-6 w-6" />
+            <X className="h-6 w-6" />
           </motion.button>
         </div>
 
@@ -195,7 +195,7 @@ export function Sidebar({
                   <motion.span
                     layoutId="activeNav"
                     transition={reduceMotion ? { duration: 0 } : spring.snappy}
-                    className="absolute inset-0 rounded-lg bg-[#eaf2ee]"
+                    className="absolute inset-0 rounded-lg bg-white/90 shadow-aura-sm"
                   />
                 )}
                 <Link
@@ -208,8 +208,8 @@ export function Sidebar({
                     "relative z-10 flex min-h-[44px] items-center rounded-lg px-3 text-sm font-medium transition-colors",
                     showLabels ? "justify-start" : "justify-center",
                     isActive
-                      ? "text-[#132420]"
-                      : "text-[#cbd9d2] hover:bg-white/10 hover:text-white"
+                      ? "text-[#14382a]"
+                      : "text-[#dff0e7] hover:bg-black/10 hover:text-white"
                   )}
                 >
                   <motion.span
@@ -242,9 +242,9 @@ export function Sidebar({
           })}
         </nav>
 
-        <div className="shrink-0 border-t border-white/10 p-3">
+        <div className="shrink-0 border-t border-white/15 p-3">
           {showLabels ? (
-            <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 p-3">
+            <div className="flex items-center gap-3 rounded-xl border border-white/20 bg-white/10 p-3">
               <Avatar className="h-9 w-9">
                 <AvatarImage
                   src={avatarSrc}
@@ -256,10 +256,10 @@ export function Sidebar({
                 <p className="truncate text-sm font-medium text-white">
                   {user?.full_name || "Clinician"}
                 </p>
-                <p className="flex items-center gap-1.5 text-xs capitalize text-[#a9bdb4]">
+                <p className="flex items-center gap-1.5 text-xs capitalize text-[#dff0e7]">
                   <span className="relative flex h-2 w-2 shrink-0">
-                    <span className="absolute inline-flex h-full w-full rounded-full bg-[#7fd9b8] opacity-40" />
-                    <span className="relative inline-flex h-2 w-2 rounded-full bg-[#7fd9b8]" />
+                    <span className="absolute inline-flex h-full w-full rounded-full bg-aura-accent opacity-40" />
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-aura-accent" />
                   </span>
                   <span className="truncate">
                     {user?.role?.replace("_", " ") || "Clinician"}
@@ -273,7 +273,7 @@ export function Sidebar({
                 onClick={onSignOut}
                 aria-label="Sign out"
                 title="Sign out"
-                className="rounded-lg p-2 text-[#a9bdb4] transition-colors hover:bg-white/10 hover:text-white"
+                className="rounded-lg p-2 text-white/80 transition-colors hover:bg-black/10 hover:text-white"
               >
                 <LogOut className="h-4 w-4" aria-hidden="true" />
               </motion.button>
@@ -291,7 +291,7 @@ export function Sidebar({
                 onClick={onSignOut}
                 aria-label="Sign out"
                 title="Sign out"
-                className="rounded-lg p-2 text-[#a9bdb4] transition-colors hover:bg-white/10 hover:text-white"
+                className="rounded-lg p-2 text-white/80 transition-colors hover:bg-black/10 hover:text-white"
               >
                 <LogOut className="h-4 w-4" aria-hidden="true" />
               </motion.button>
